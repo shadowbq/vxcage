@@ -27,6 +27,7 @@ from sqlalchemy.orm import relationship, backref, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from sqlalchemy.pool import NullPool
+from sqlalchemy.dialects import postgresql
 
 from objects import File, Config
 from datetime import datetime
@@ -51,6 +52,8 @@ class Malware(Base):
     sha256 = Column(String(64), nullable=False, index=True)
     sha512 = Column(String(128), nullable=False)
     ssdeep = Column(String(255), nullable=True)
+    virustotal = Column(postgresql.JSON(), nullable=True)
+    exif = Column(postgresql.JSON(), nullable=True)
     created_at = Column(DateTime(timezone=False), default=datetime.now(), nullable=False)
     tag = relationship("Tag",
                        secondary=association_table,
@@ -83,6 +86,8 @@ class Malware(Base):
                  file_size,
                  file_type=None,
                  ssdeep=None,
+		 virustotal=None,
+		 exif=None,
                  file_name=None):
         self.md5 = md5
         self.sha1 = sha1
@@ -92,6 +97,8 @@ class Malware(Base):
         self.file_size = file_size
         self.file_type = file_type
         self.ssdeep = ssdeep
+	self.virustotal= virustotal
+	self.exif = exif
         self.file_name = file_name
 
 class Tag(Base):
@@ -149,6 +156,8 @@ class Database:
                                         file_size=obj.get_size(),
                                         file_type=obj.get_type(),
                                         ssdeep=obj.get_ssdeep(),
+                                        virustotal=obj.get_virustotal(),
+                                        exif=obj.get_exif(),
                                         file_name=file_name)
                 session.add(malware_entry)
                 session.commit()
