@@ -81,6 +81,10 @@ def find_malware():
             "sha512" : row.sha512,
             "crc32" : row.crc32,
             "ssdeep": row.ssdeep,
+            "exif": row.exif,
+            "virustotal": row.virustotal,
+            "peid": row.peid,
+            "pdfid": row.pdfid,
             "created_at": row.created_at.__str__(),
             "tags" : tags
         }

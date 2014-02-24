@@ -30,6 +30,7 @@ import sys
 import getpass
 import argparse
 import readline
+import json
 
 try:
     import requests
@@ -158,6 +159,13 @@ class VxCage(object):
             for key, value in res.items():
                 if key == "tags":
                     print("%s: %s" % (bold(key), ",".join(value)))
+                elif key == "virustotal":
+                    vt = res["virustotal"]
+                    print('\033[1m' + "virustotal" + '\033[0m' + ": " + str(vt["positives"]) + "/" + str(vt["total"]) + " matches")
+                elif key == "exif":
+                    exif = res["exif"]
+                    #print('\033[1m' + "timestamp" + '\033[0m' + ": " + exif["EXE:TimeStamp"])
+                    #print('\033[1m' + "character set" + '\033[0m' + ": " + exif["EXE:CharacterSet"])
                 else:
                     print("%s: %s" % (bold(key), value))
         else:
@@ -166,6 +174,7 @@ class VxCage(object):
                                  "file_name",
                                  "file_type",
                                  "file_size",
+                                 "virustotal",
                                  "tags"])
             table.align = "l"
             table.padding_width = 1
@@ -176,6 +185,7 @@ class VxCage(object):
                                entry["file_name"],
                                entry["file_type"],
                                entry["file_size"],
+                               entry["virustotal"],
                                ", ".join(entry["tags"])])
 
             print(table)
