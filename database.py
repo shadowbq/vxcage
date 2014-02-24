@@ -54,6 +54,9 @@ class Malware(Base):
     ssdeep = Column(String(255), nullable=True)
     virustotal = Column(postgresql.JSON(), nullable=True)
     exif = Column(postgresql.JSON(), nullable=True)
+    peheaders = Column(postgresql.JSON(), nullable=True)
+    peid = Column(Text(), nullable=True)
+    pdfid = Column(postgresql.JSON(), nullable=True)
     created_at = Column(DateTime(timezone=False), default=datetime.now(), nullable=False)
     tag = relationship("Tag",
                        secondary=association_table,
@@ -86,8 +89,11 @@ class Malware(Base):
                  file_size,
                  file_type=None,
                  ssdeep=None,
-		 virustotal=None,
-		 exif=None,
+		         virustotal=None,
+		         exif=None,
+		         peheaders=None,
+		         peid=None,
+		         pdfid=None,
                  file_name=None):
         self.md5 = md5
         self.sha1 = sha1
@@ -97,8 +103,11 @@ class Malware(Base):
         self.file_size = file_size
         self.file_type = file_type
         self.ssdeep = ssdeep
-	self.virustotal= virustotal
-	self.exif = exif
+        self.virustotal= virustotal
+        self.exif = exif
+        self.peheaders = peheaders
+        self.peid = peid
+        self.pdfid = pdfid
         self.file_name = file_name
 
 class Tag(Base):
@@ -158,6 +167,9 @@ class Database:
                                         ssdeep=obj.get_ssdeep(),
                                         virustotal=obj.get_virustotal(),
                                         exif=obj.get_exif(),
+                                        peheaders=obj.get_peheaders(),
+                                        peid=obj.get_peid(),
+                                        pdfid=obj.get_pdfid(),
                                         file_name=file_name)
                 session.add(malware_entry)
                 session.commit()

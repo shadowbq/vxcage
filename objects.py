@@ -247,7 +247,7 @@ class File:
             tfile.close()            
             for key in uselessexifkey:
                 del metadata[key]
-        return metadata
+        return json.dumps(metadata)
 
     def get_peheaders(self):
         metadata = {}
@@ -284,7 +284,7 @@ class File:
         except Exception:
             logging.exception("Failed to get TimeDateStamp")
 
-        return metadata
+        return json.dumps(metadata)
 
     def get_pesections(self):
         metadata = {}
@@ -302,7 +302,7 @@ class File:
             metadata[sectionName]['sha256'] = section.get_hash_sha256()
             metadata[sectionName]['sha512'] = section.get_hash_sha512()
 
-        return metadata
+        return json.dumps(metadata)
 
     def get_pefunctions(self):
         metadata = {}
@@ -321,7 +321,7 @@ class File:
             sys.exit("Out of memory error")
         except Exception:
             pass
-        return metadata
+        return json.dumps(metadata)
 
     def get_peexports(self):
         metadata = []
