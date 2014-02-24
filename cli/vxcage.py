@@ -29,6 +29,7 @@ import os
 import sys
 import getpass
 import argparse
+import readline
 
 try:
     import requests
