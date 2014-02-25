@@ -252,7 +252,7 @@ class File:
     def get_peheaders(self):
         metadata = {}
         if not self.pe:
-            return None
+            return json.loads('{"pe" : 0}')
         else:
             pe = self.pe
 
@@ -289,7 +289,7 @@ class File:
     def get_pesections(self):
         metadata = {}
         if not self.pe:
-            return None
+            return json.loads('{"pe" : 0}')
         else:
             pe = self.pe
         for section in pe.sections:
@@ -307,7 +307,7 @@ class File:
     def get_pefunctions(self):
         metadata = {}
         if not self.pe:
-            return None
+            return json.loads('{"pe" : 0}')
         else:
             pe = self.pe
         try:
@@ -320,13 +320,13 @@ class File:
             logging.exception("Out of memory")
             sys.exit("Out of memory error")
         except Exception:
-            pass
+            return json.loads('{"pe" : -1}')
         return json.dumps(metadata)
 
     def get_peexports(self):
         metadata = []
         if not self.pe:
-            return None
+            return json.loads('{"pe" : 0}')
         else:
             pe = self.pe
         try:
@@ -336,7 +336,7 @@ class File:
             logging.exception("Out of memory")
             sys.exit("Out of memory error")
         except Exception:
-            pass
+            return json.loads('{"pe" : -1}')
 
         return metadata
     
@@ -375,7 +375,7 @@ class File:
             logging.exception("Out of memory")
             sys.exit("Out of memory error")
         except Exception:
-            pass
+                return json.loads('{"pdfid" : -1}')
         
         return metadata
 
@@ -386,7 +386,7 @@ class File:
         try:
             apikey = Config().virustotal.api_key
         except Exception as e:
-            return "No VirusTotal API key configured"
+                return json.loads('{"virustotal" : -1}')
         parameters = { "resource": md5, "apikey": apikey }
         data = urllib.urlencode(parameters)
         req = urllib2.Request(url, data)
