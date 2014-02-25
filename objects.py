@@ -399,11 +399,11 @@ class File:
             if VTjson['response_code'] == 1:
                 return VTjson
             else:
-                return "File Does Not Exist in VirusTotal"
+                return json.loads('{"virustotal" : 0}')
         except MemoryError:
             sys.exit("Out of memory error")
         except Exception:
-            return "VirusTotal API Error"
+                return json.loads('{"virustotal" : -1}')
 
 class Config:
     def __init__(self, cfg="api.conf"):

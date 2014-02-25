@@ -22,7 +22,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime, Enum, Text, ForeignKey, Table, Index, and_
+from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime, Enum, Text, ForeignKey, Table, Index, and_, or_
 from sqlalchemy.orm import relationship, backref, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
@@ -237,4 +237,9 @@ class Database:
     def list_tags(self):
         session = self.Session()
         rows = session.query(Tag).all()
+        return rows
+    
+    def vt_null(self):
+        session = self.Session()
+        rows = session.query(Malware).filter(Malware.virustotal['virustotal'].cast(Integer) < 1).all()
         return rows

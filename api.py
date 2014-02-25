@@ -27,6 +27,7 @@
 
 import os
 import argparse
+import json
 
 from bottle import route, request, response, run
 from bottle import HTTPError
@@ -138,6 +139,16 @@ def list_tags():
         results.append(row.tag)
 
     return jsonize(results)
+
+@route("/vt/null", method="GET")
+def vt_null():
+    rows = db.vt_null()
+
+    results = []
+    for row in rows:
+        results.append(row.md5)
+
+    return json.dumps(results, ensure_ascii=True)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
