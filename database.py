@@ -52,6 +52,7 @@ class Malware(Base):
     sha256 = Column(String(64), nullable=False, index=True)
     sha512 = Column(String(128), nullable=False)
     ssdeep = Column(String(255), nullable=True)
+    imphash= Column(String(32), nullable=True)
     virustotal = Column(postgresql.JSON(), nullable=True)
     exif = Column(postgresql.JSON(), nullable=True)
     peheaders = Column(postgresql.JSON(), nullable=True)
@@ -89,6 +90,7 @@ class Malware(Base):
                  file_size,
                  file_type=None,
                  ssdeep=None,
+                 imphash=None,
 		         virustotal=None,
 		         exif=None,
 		         peheaders=None,
@@ -103,6 +105,7 @@ class Malware(Base):
         self.file_size = file_size
         self.file_type = file_type
         self.ssdeep = ssdeep
+        self.imphash = imphash 
         self.virustotal= virustotal
         self.exif = exif
         self.peheaders = peheaders
@@ -165,6 +168,7 @@ class Database:
                                         file_size=obj.get_size(),
                                         file_type=obj.get_type(),
                                         ssdeep=obj.get_ssdeep(),
+                                        imphash=obj.get_imphash(),
                                         virustotal=obj.get_virustotal(),
                                         exif=obj.get_exif(),
                                         peheaders=obj.get_peheaders(),
@@ -223,6 +227,11 @@ class Database:
     def find_ssdeep(self, ssdeep):
         session = self.Session()
         rows = session.query(Malware).filter(Malware.ssdeep.like("%" + str(ssdeep) + "%")).all()
+        return rows
+
+    def find_imphash(self, imphash):
+        session = self.Session()
+        rows = session.query(Malware).filter(Malware.imphash.like("%" + str(imphash) + "%")).all()
         return rows
 
     def find_date(self, date):

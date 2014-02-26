@@ -82,6 +82,7 @@ def find_malware():
             "sha512" : row.sha512,
             "crc32" : row.crc32,
             "ssdeep": row.ssdeep,
+            "imphash": row.imphash,
             "exif": row.exif,
             "virustotal": row.virustotal,
             "peid": row.peid,
@@ -95,6 +96,7 @@ def find_malware():
     md5 = request.forms.get("md5")
     sha256 = request.forms.get("sha256")
     ssdeep = request.forms.get("ssdeep")
+    ssdeep = request.forms.get("imphash")
     tag = request.forms.get("tag")
     date = request.forms.get("date")
 
@@ -113,6 +115,8 @@ def find_malware():
     else:
         if ssdeep:
             rows = db.find_ssdeep(ssdeep)
+        if imphash:
+            rows = db.find_imphash(imphash)
         elif tag:
             rows = db.find_tag(tag)
         elif date:

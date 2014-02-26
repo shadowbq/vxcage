@@ -304,6 +304,13 @@ class File:
 
         return json.dumps(metadata)
 
+    def get_imphash(self):
+        if not self.pe:
+            return
+        else:
+            pe = self.pe
+        return pe.get_imphash()
+
     def get_pefunctions(self):
         metadata = {}
         if not self.pe:
