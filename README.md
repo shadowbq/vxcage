@@ -13,7 +13,7 @@ In order to install VxCage you need to have Python (2.7) installed. Following ar
 
 If you want to enable the fuzzy hash, you need to install [ssdeep](http://ssdeep.sourceforge.net/) and the Python bindings, [pydeep](https://github.com/kbandla/pydeep).
 
-VxCage also requires any database engine from the [ones supported](http://docs.sqlalchemy.org/en/rel_0_7/core/engines.html). Depending to which one you pick, you'll need the required Python API. For example, in the case of MySQL you'll also need [MySQLdb](http://mysql-python.sourceforge.net/) (`pip install mysqldb`).
+This fork of VxCage requires PostgreSQL (for now) in order to take advantage of native json data types.
 
 If you plan to run VxCage with Apache, you'll need to have mod_wsgi installed. On Ubuntu/Debian systems ``apt-get install libapache2-mod-wsgi``.
 
@@ -22,14 +22,6 @@ Installation
 
 First thing first, extract VxCage to your selected location and open `api.conf` and configure the path to the local folder you want to use as a storage.
 You also need to configure the connection string for your database. For example:
-
-MySQL:
-
-    mysql://user:pass@host/database
-
-SQLite:
-
-    sqlite:///database.db
 
 PostgreSQL:
 
@@ -120,6 +112,10 @@ Find a sample by Ssdeep (can also search for a substring of the ssdeep hash):
 
     $ curl -F ssdeep=<pattern> http://yourdomain.tld/malware/find
 
+Find a sample by import hash (md5):
+
+     $ curl -F imphash=<imphash> http://yourdomain.tld/malware/find
+
 Find a sample by Tag:
 
     $ curl -F tag=<tag> http://yourdomain.tld/malware/find
@@ -127,6 +123,10 @@ Find a sample by Tag:
 List existing tags:
 
     $ curl http://yourdomain.tld/tags/list
+
+Retrieve total (estimated) number of samples:
+
+    $ curl http://yourdomain/malware/total
 
 
 In case you added a basic authentication, you will need to add `--basic -u "user:pass"`. In case you added SSL support with a generated certificate, you will need to add `--insecure` and obviously make the requests to https://yourdomain.tld.
