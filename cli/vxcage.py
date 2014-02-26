@@ -62,7 +62,7 @@ def help():
     print("Available commands:")
     print("  " + bold("help") + "        Show this help")
     print("  " + bold("tags") + "        Retrieve list of tags")
-    print("  " + bold("find") + "        Find a file by md5, sha256, ssdeep, tag or date")
+    print("  " + bold("find") + "        Find a file by md5, sha256, ssdeep, imphash, tag or date")
     print("  " + bold("get") + "         Retrieve a file by sha256")
     print("  " + bold("add") + "         Upload a file to the server")
 
@@ -129,7 +129,7 @@ class VxCage(object):
 
     def find_malware(self, term, value):
         term = term.lower()
-        terms = ["md5", "sha256", "ssdeep", "tag", "date"]
+        terms = ["md5", "sha256", "ssdeep", "imphash", "tag", "date"]
 
         if not term in terms:
             print("ERROR: Invalid search term [%s]" % (", ".join(terms)))
