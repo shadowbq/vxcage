@@ -403,10 +403,7 @@ class File:
 
             response = urllib2.urlopen(req)
             VTjson = json.loads(response.read())
-            if VTjson['response_code'] == 1:
-                return VTjson
-            else:
-                return json.loads('{"virustotal" : 0}')
+            return VTjson
         except MemoryError:
             sys.exit("Out of memory error")
         except Exception:
