@@ -148,7 +148,7 @@ def vt_error():
     for row in rows:
         results.append(row.sha256)
 
-    return json.dumps(results, ensure_ascii=True)
+    return jsonize(results)
 
 @route("/vt/missing", method="GET")
 def vt_missing():
@@ -158,7 +158,13 @@ def vt_missing():
     for row in rows:
         results.append(row.sha256)
 
-    return json.dumps(results, ensure_ascii=True)
+    return jsonize(results)
+
+@route("/malware/total", method="GET")
+def total_samples():
+    results = db.total_samples()
+
+    return jsonize(results)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
