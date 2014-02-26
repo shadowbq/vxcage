@@ -231,7 +231,7 @@ class Database:
 
     def find_imphash(self, imphash):
         session = self.Session()
-        rows = session.query(Malware).filter(Malware.imphash.like("%" + str(imphash) + "%")).all()
+        row = session.query(Malware).filter(Malware.imphash == imphash).all()
         return rows
 
     def find_date(self, date):
