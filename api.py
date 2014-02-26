@@ -140,13 +140,23 @@ def list_tags():
 
     return jsonize(results)
 
-@route("/vt/null", method="GET")
-def vt_null():
-    rows = db.vt_null()
+@route("/vt/error", method="GET")
+def vt_error():
+    rows = db.vt_error()
 
     results = []
     for row in rows:
-        results.append(row.md5)
+        results.append(row.sha256)
+
+    return json.dumps(results, ensure_ascii=True)
+
+@route("/vt/missing", method="GET")
+def vt_missing():
+    rows = db.vt_missing()
+
+    results = []
+    for row in rows:
+        results.append(row.sha256)
 
     return json.dumps(results, ensure_ascii=True)
 

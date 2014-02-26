@@ -239,7 +239,12 @@ class Database:
         rows = session.query(Tag).all()
         return rows
     
-    def vt_null(self):
+    def vt_error(self):
         session = self.Session()
-        rows = session.query(Malware).filter(Malware.virustotal['virustotal'].cast(Integer) < 1).all()
+        rows = session.query(Malware).filter(Malware.virustotal['virustotal'].cast(Integer) == -1).all()
+        return rows
+
+    def vt_missing(self):
+        session = self.Session()
+        rows = session.query(Malware).filter(Malware.virustotal['virustotal'].cast(Integer) == 0).all()
         return rows
