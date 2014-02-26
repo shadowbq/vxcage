@@ -51,6 +51,14 @@ except ImportError:
     sys.exit("ERROR: PEFile / PEUtils library is missing")
 
 try:
+    import virustotal
+except MemoryError:
+    logging.exception("Out of memory")
+    sys.exit("Out of memory error")
+except ImportError:
+    sys.exit("ERROR: virustotal library is missing")
+
+try:
     import exiftool
 except MemoryError:
     logging.exception("Out of memory")
@@ -388,21 +396,14 @@ class File:
 
     def get_virustotal(self):
         ''' Returns VirusTotal report in JSON format '''
-        md5 = self.get_md5()
-        url = "https://www.virustotal.com/vtapi/v2/file/report"
+        sha256 = self.get_sha256()
         try:
             apikey = Config().virustotal.api_key
         except Exception as e:
                 return json.loads('{"virustotal" : -1}')
-        parameters = { "resource": md5, "apikey": apikey }
-        data = urllib.urlencode(parameters)
-        req = urllib2.Request(url, data)
         try:
-            if Config().virustotal.proxy:
-                req.set_proxy(Config().virustotal.proxy,"http")
-
-            response = urllib2.urlopen(req)
-            VTjson = json.loads(response.read())
+            v = virustotal.VirusTotal(apikey)
+            VTjson = v.get_raw(sha256)
             return VTjson
         except MemoryError:
             sys.exit("Out of memory error")
