@@ -11,16 +11,37 @@ In order to install VxCage you need to have Python (2.7) installed. Following ar
 * [bottle.py](http://www.bottlepy.org/) -- `pip install bottle`
 * [sqlalchemy](http://www.sqlalchemy.org) -- `pip install sqlalchemy`
 
-If you want to enable the fuzzy hash, you need to install [ssdeep](http://ssdeep.sourceforge.net/) and the Python bindings, [pydeep](https://github.com/kbandla/pydeep).
 
-This fork of VxCage requires PostgreSQL (for now) in order to take advantage of native json data types.
+If you want to enable the fuzzy hash, you need to install.
 
-If you plan to run VxCage with Apache, you'll need to have mod_wsgi installed. On Ubuntu/Debian systems ``apt-get install libapache2-mod-wsgi``.
+* [ssdeep](http://ssdeep.sourceforge.net/) and the Python bindings, [pydeep](https://github.com/kbandla/pydeep).
+
+On Ubuntu/Debian systems ``sudo apt-get install ssdeep libfuzzy-dev``
+
+* [pydeep](http://ssdeep.sourceforge.net/) -- ``pip install pydeep``
+
+If you plan to run VxCage with Apache, you'll need to have mod_wsgi installed. 
+
+On Ubuntu/Debian systems ``apt-get install libapache2-mod-wsgi``.
 
 Installation
 ------------
 
+### PostgreSQL
+
 First thing first, extract VxCage to your selected location and open `api.conf` and configure the path to the local folder you want to use as a storage.
+
+This fork of VxCage requires PostgreSQL in order to take advantage of native json data types.
+
+To install PostgreSQL requirements
+
+    On Ubuntu/Debian systems ``apt-get install postgresql postgresql-contrib postgresql-server-dev-all libpq-dev``.
+
+
+PostgreSQL SQLAlchemy Bindings:
+    
+    # ``pip install psycopg2``
+
 You also need to configure the connection string for your database. For example:
 
 PostgreSQL:
@@ -28,6 +49,8 @@ PostgreSQL:
     postgresql://user:pass@host/database
 
 Refer to [SQLAlchemy](http://docs.sqlalchemy.org/en/latest/core/engines.html)'s documentation for additional details.
+
+### Apache Installation
 
 Now proceeds installing Apache and required modes:
 
@@ -37,12 +60,15 @@ Enable the mod:
 
     # a2enmod wsgi
 
+#### Secure Apache Installation
+
 If you want to enable SSL, you need to generate a certificate with OpenSSL or buy one from a certified authority.
 You can also use the `make-ssl-cert` utility as following:
 
     # make-ssl-cert /usr/share/ssl-cert/ssleay.cnf /path/to/apache.pem
 
 Now create a virtual host for the domain you want to host the application on. We'll enable WSGI, SSL and a basic authentication.
+
 A valid template is the following:
 
     <VirtualHost *:443>
@@ -78,10 +104,41 @@ Now add your user:
 
     # htpasswd -c /path/to/users username
 
-You should be ready to go. Make sure to restart Apache afterwards:
+You should be ready to go. Make sure to reload Apache afterwards:
 
-    # /etc/init.d/apache2 restart
+    # service apache2 reload
 
+#### Unauthenticated Apache 2.4.x Installation
+
+    <VirtualHost *:80>
+        ServerName localhost
+    
+        WSGIDaemonProcess localhost user=www-data group=www-data processes=1 threads=5
+        WSGIScriptAlias / /opt/vxcage/app.wsgi
+    
+        <Directory /opt/vxcage>
+            WSGIProcessGroup localhost
+            WSGIApplicationGroup %{GLOBAL}
+            <Files app.wsgi>
+                Require all granted
+            </Files>
+        </Directory>
+    
+    
+        ErrorLog /opt/vxcage/error.log
+        LogLevel debug
+        CustomLog /opt/vxcage/access.log combined
+        ServerSignature Off
+    </VirtualHost>
+
+
+You should be ready to go. Make sure to reload Apache afterwards:
+
+    # service apache2 reload
+
+
+Test Installation (Pure Python)
+------------
 
 For testing purposes, you can also run it with the Bottle.py server just doing:
 
