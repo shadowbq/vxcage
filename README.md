@@ -31,18 +31,16 @@ Installation
 
 First thing first, extract VxCage to your selected location and open `api.conf` and configure the path to the local folder you want to use as a storage.
 
-This fork of VxCage requires PostgreSQL in order to take advantage of native json data types.
+This fork of VxCage *requires* PostgreSQL in order to take advantage of native json data types.
 
-To install PostgreSQL requirements
+To install PostgreSQL requirements:
 
-    On Ubuntu/Debian systems ``apt-get install postgresql postgresql-contrib postgresql-server-dev-all libpq-dev``.
+On Ubuntu/Debian systems ``apt-get install postgresql postgresql-contrib postgresql-server-dev-all libpq-dev``.
 
 
-PostgreSQL SQLAlchemy Bindings:
-    
-    # ``pip install psycopg2``
+* [psycopg2](http://initd.org/psycopg/) PostgreSQL SQLAlchemy Bindings -- ``pip install psycopg2``
 
-You also need to configure the connection string for your database. For example:
+You also need to configure the connection string for your database in `api.conf`. For example:
 
 PostgreSQL:
 
