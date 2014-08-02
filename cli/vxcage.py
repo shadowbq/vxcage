@@ -74,11 +74,12 @@ def help():
     
 
 class VxCage(object):
-    def __init__(self, host, port, ssl=False, auth=False):
+    def __init__(self, host, port, xmock, ssl=False, auth=False):
         self.host = host
         self.port = port
         self.ssl = ssl
         self.auth = auth
+        self.xmock = xmock
         self.username = None
         self.password = None
 
@@ -94,7 +95,7 @@ class VxCage(object):
         else:
             url = "http://"
         
-        url += "%s:%s%s" % (self.host, self.port, route)
+        url += "%s:%s%s%s" % (self.host, self.port, self.xmock, route)
 
         return url
 
@@ -361,7 +362,8 @@ if __name__ == "__main__":
     parser.add_argument("-p", "--port", help="Port of VxCage server", default=8080, action="store", required=False)
     parser.add_argument("-s", "--ssl", help="Enable if the server is running over SSL", default=False, action="store_true", required=False)
     parser.add_argument("-a", "--auth", help="Enable if the server is prompting an HTTP authentication", default=False, action="store_true", required=False)
+    parser.add_argument("-x", "--xmock", help="(api testing) URL of VxCage server mock service", default="", action="store", required=False)
     args = parser.parse_args()
 
-    vx = VxCage(host=args.host, port=args.port, ssl=args.ssl, auth=args.auth)
+    vx = VxCage(host=args.host, port=args.port, ssl=args.ssl, auth=args.auth, xmock=args.xmock)
     vx.run()
