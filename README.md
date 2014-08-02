@@ -3,7 +3,7 @@ VxCage
 
 VxCage is a WSGI Python application for managing a malware samples repository with a REST API interface.
 
-Requirements
+Dependencies
 ------------
 
 In order to install VxCage you need to have Python (2.7) installed. Following are the required libraries.
@@ -27,6 +27,13 @@ pyEXIFTool for inspecting Image files
 
 * [pyEXIFTool](https://github.com/smarnach/pyexiftool) -- ``sudo pip install git+https://github.com/smarnach/pyexiftool.git#egg=pyexiftool``
 
+
+Developement dependencies
+---------
+
+* Build Cleaning tool -- ``pip install invoke``
+* Test Drive Design -- ``pip install ivoire``
+* Run Tests -- ``pip install tox``
 
 Installation
 ------------
