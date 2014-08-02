@@ -91,8 +91,11 @@ class VxCage(object):
     def build_url(self, route):
         if self.ssl:
             url = "https://"
-            self.port = 443
+            if self.port is None:
+                self.port = 443    
         else:
+            if self.port is None:
+                self.port = 8080
             url = "http://"
         
         url += "%s:%s%s%s" % (self.host, self.port, self.xmock, route)
@@ -359,7 +362,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-H", "--host", help="Host of VxCage server", default="localhost", action="store", required=False)
-    parser.add_argument("-p", "--port", help="Port of VxCage server", default=8080, action="store", required=False)
+    parser.add_argument("-p", "--port", help="Port of VxCage server", action="store", required=False)
     parser.add_argument("-s", "--ssl", help="Enable if the server is running over SSL", default=False, action="store_true", required=False)
     parser.add_argument("-a", "--auth", help="Enable if the server is prompting an HTTP authentication", default=False, action="store_true", required=False)
     parser.add_argument("-x", "--xmock", help="(api testing) URL of VxCage server mock service", default="", action="store", required=False)
