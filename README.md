@@ -239,11 +239,26 @@ Now you can start typing commands, you can start with:
 
     vxcage> help
     Available commands:
-      help        Show this help
-      tags        Retrieve list of tags
-      find        Find a file by md5, sha256, ssdeep, tag or date
-      get         Retrieve a file by sha256
-      add         Upload a file to the server
+      tags         Retrieve list of tags
+      find         Query a file by md5, sha256, ssdeep, imphash, tag or date
+      get          Retrieve a file by sha256
+      add          Upload a file to the server
+      total        Total number of samples
+      version      Version of remote vxcage server
+      
+      help         Show this help
+      exit | quit  Exit cli application
+
+You can interrogate the server:
+
+    vxcage> version
+    +---------+------------------------------------+
+    | Key     | Value                              |
+    +---------+------------------------------------+
+    | source  | https://github.com/shadowbq/vxcage |
+    | version | 1.3.0                              |
+    +---------+------------------------------------+
+
 
 You can retrieve the list of available tags:
 
@@ -273,19 +288,23 @@ You can search for all samples matching a specific tag:
 
 You can view details on a specific sample:
 
-    vxcage> find md5 719354b4b7b182b30e1de8ce7b417d2f
-    sha1: 091fcf7378bfc4baec61bc5708e9a64128c5c7e4
-    tags: banker,carberp
-    file_type: PE32 executable (GUI) Intel 80386, for MS Windows
-    file_name: carberp1.exe
-    created_at: 2012-12-25 00:37:16
-    file_size: 132096
-    crc32: 05AF53DC
-    ssdeep: 3072:fQAsBL+tnecg1OS+x/+SSQSBX8MxaQhJwox:fQAsBoecg1UM3c
-    sha256: 689a35928f71848fab346b50811c6c0aab95da01b9293c60d74c7be1357dc029
-    sha512: 844e0010e23571e2bc6a44405a012bca4f01955348db26320d6a95e54e6afc85a81bef574ee65de9d67cdf6e2cf80fd4d1b2c559902596943b1e4ebeb5641650
-    id: 41
-    md5: 719354b4b7b182b30e1de8ce7b417d2f
+    vxcage> find sha256 b4c5ecdb80ac097eaed5299c8f66cd56ebfe502e33aecf7ecfb6c34efc9f42ac
+    peid: None
+    sha1: 20ccd7830548e8ad90216f1473ce4d7f3748b1a8
+    virustotal: -/- matches
+    tags: upxed
+    file_type: None
+    imphash: None
+    created_at: 2014-08-02 04:59:19.937406
+    file_size: 166912
+    pdfid: {u'pdfid': -1}
+    file_name: puttytel.exe
+    crc32: 51799BDB
+    ssdeep: 3072:lWVW9uWonxEXJXcUuu45mrCDc+hzWXyi:4I9snxE5XUTs+hzW
+    sha256: b4c5ecdb80ac097eaed5299c8f66cd56ebfe502e33aecf7ecfb6c34efc9f42ac
+    sha512: be6286f1d79b4aca1a1e504fcc270820803af3c64cf9a570a3a22588734c4cb7a3cef460cccbbd984fcfb6b91fb32108819952859c5baf73fe588fe8372abae5
+    id: 7
+    md5: a8b41b32131ca34387d2929c19eaa7d4
 
 You can download the sample:
 
@@ -301,7 +320,9 @@ Or upload a new one:
 Copying
 -------
 
-VxCage is licensed under [BSD 2-Clause](http://opensource.org/licenses/bsd-license.php) and is copyrighted to Claudio Guarnieri.
+See LICENSE file
+
+VxCage is licensed originally under [BSD 2-Clause](http://opensource.org/licenses/bsd-license.php) and is copyrighted to Claudio Guarnieri.
 
 
 Contacts
