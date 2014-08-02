@@ -8,7 +8,13 @@ Additional applications can be directly developed against the mulesoft mock for 
 mocksvc.mulesoft.com
 ----------
 
-  [shadowbq@vxcage](~/sandbox/shadowbq/vxcage)$ python cli/vxcage.py --port 80 --host mocksvc.mulesoft.com --xmock /mocks/424f137a-ce33-4fae-93e3-d58b64333668/mocks/d7e8f882-2b84-4478-b03d-44f686c9ad26 
+Current mocking location
+
+http://mocksvc.mulesoft.com/mocks/424f137a-ce33-4fae-93e3-d58b64333668/mocks/d7e8f882-2b84-4478-b03d-44f686c9ad26
+
+
+```
+  [shadowbq@vxcage](~/sandbox/shadowbq/vxcage)$ python cli/vxcage.py --port 80 --host mocksvc.mulesoft.com --xmock   /mocks/424f137a-ce33-4fae-93e3-d58b64333668/mocks/d7e8f882-2b84-4478-b03d-44f686c9ad26 
   
     `o   O o   O .oOo  .oOoO' .oOoO .oOo. 
      O   o  OoO  O     O   o  o   O OooO' 
@@ -25,3 +31,4 @@ mocksvc.mulesoft.com
   | version | 1.3.0                              |
   +---------+------------------------------------+
   vxcage> 
+```
