@@ -20,9 +20,10 @@ On Ubuntu/Debian systems ``sudo apt-get install ssdeep libfuzzy-dev``
 
 * [pydeep](http://ssdeep.sourceforge.net/) -- ``pip install pydeep``
 
-If you plan to run VxCage with Apache, you'll need to have mod_wsgi installed. 
+pyEXIFTool for inspecting Image files
 
-On Ubuntu/Debian systems ``apt-get install libapache2-mod-wsgi``.
+* [pyEXIFTool](https://github.com/smarnach/pyexiftool) -- ``sudo pip install git+https://github.com/smarnach/pyexiftool.git#egg=pyexiftool``
+
 
 Installation
 ------------
@@ -49,6 +50,10 @@ PostgreSQL:
 Refer to [SQLAlchemy](http://docs.sqlalchemy.org/en/latest/core/engines.html)'s documentation for additional details.
 
 ### Apache Installation
+
+If you plan to run VxCage with Apache, you'll need to have mod_wsgi installed. 
+
+On Ubuntu/Debian systems ``apt-get install libapache2-mod-wsgi``.
 
 Now proceeds installing Apache and required modes:
 
