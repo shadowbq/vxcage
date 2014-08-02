@@ -3,6 +3,8 @@ API Resources
 
 The API is documented in the api.raml file
 
+* [RAML API Docs](https://anypoint.mulesoft.com/apiplatform/self-1/#/portals/apis/349/versions/265/pages/234)
+
 Additional applications can be directly developed against the mulesoft mock for v.1.3.0
 
 mocksvc.mulesoft.com
