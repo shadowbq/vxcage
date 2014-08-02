@@ -27,7 +27,7 @@ try:
 except IOError: 
     pass 
 atexit.register(readline.write_history_file, histfile) 
-del os, histfile, readline, rlcompleter
+del histfile, readline, rlcompleter
 
 
 
