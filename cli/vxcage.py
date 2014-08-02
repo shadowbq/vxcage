@@ -60,11 +60,16 @@ def logo():
 
 def help():
     print("Available commands:")
-    print("  " + bold("help") + "        Show this help")
-    print("  " + bold("tags") + "        Retrieve list of tags")
-    print("  " + bold("find") + "        Find a file by md5, sha256, ssdeep, imphash, tag or date")
-    print("  " + bold("get") + "         Retrieve a file by sha256")
-    print("  " + bold("add") + "         Upload a file to the server")
+    print("  " + bold("tags") + "         Retrieve list of tags")
+    print("  " + bold("find") + "         Query a file by md5, sha256, ssdeep, imphash, tag or date")
+    print("  " + bold("get") + "          Retrieve a file by sha256")
+    print("  " + bold("add") + "          Upload a file to the server")
+    print("  " + bold("total") + "        Total number of samples")
+    print("  " + bold("version") + "      Version of remote vxcage server")
+    print("  " )
+    print("  " + bold("help") + "         Show this help")
+    print("  " + bold("exit | quit") + "  Exit cli application")
+    
 
 class VxCage(object):
     def __init__(self, host, port, ssl=False, auth=False):
@@ -127,6 +132,49 @@ class VxCage(object):
         print(table)
         print("Total: %s" % len(res))
 
+    def malware_total(self):
+        req = requests.get(self.build_url("/malware/total"),
+                           auth=(self.username, self.password),
+                           verify=False)
+        try:
+            res = req.json()
+        except:
+            try:
+                res = req.json
+            except Exception as e:
+                print("ERROR: Unable to parse results: {0}".format(e))
+                return
+
+        if self.check_errors(req.status_code):
+            return
+
+        print("Total: %s" % res)
+
+    def server_version(self):
+        req = requests.get(self.build_url("/about"),
+                           auth=(self.username, self.password),
+                           verify=False)
+        try:
+            res = req.json()
+        except:
+            try:
+                res = req.json
+            except Exception as e:
+                print("ERROR: Unable to parse results: {0}".format(e))
+                return
+
+        if self.check_errors(req.status_code):
+            return
+
+        table = PrettyTable(["Key","Value"])
+        table.align = "l"
+        table.padding_width = 1
+
+        for k,v in res.items():
+                table.add_row([k, vh])
+
+        print(table)
+
     def find_malware(self, term, value):
         term = term.lower()
         terms = ["md5", "sha256", "ssdeep", "imphash", "tag", "date"]
@@ -161,7 +209,11 @@ class VxCage(object):
                     print("%s: %s" % (bold(key), ",".join(value)))
                 elif key == "virustotal":
                     vt = res["virustotal"]
-                    print('\033[1m' + "virustotal" + '\033[0m' + ": " + str(vt["positives"]) + "/" + str(vt["total"]) + " matches")
+                    try:
+                        print('\033[1m' + "virustotal" + '\033[0m' + ": " + str(vt["positives"]) + "/" + str(vt["total"]) + " matches")
+                    except:
+                        print('\033[1m' + "virustotal" + '\033[0m' + ": -/- matches")
+
                 elif key == "exif":
                     exif = res["exif"]
                     #print('\033[1m' + "timestamp" + '\033[0m' + ": " + exif["EXE:TimeStamp"])
@@ -273,6 +325,10 @@ class VxCage(object):
 
             if command[0] == "help":
                 help()
+            elif command[0] == "total":
+                self.malware_total()
+            elif command[0] == "version":
+                self.server_version()    
             elif command[0] == "tags":
                 self.tags_list()
             elif command[0] == "find":

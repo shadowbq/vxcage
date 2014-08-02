@@ -20,6 +20,9 @@ On Ubuntu/Debian systems ``sudo apt-get install ssdeep libfuzzy-dev``
 
 * [pydeep](http://ssdeep.sourceforge.net/) -- ``pip install pydeep``
 
+In Development
+----------
+
 pyEXIFTool for inspecting Image files
 
 * [pyEXIFTool](https://github.com/smarnach/pyexiftool) -- ``sudo pip install git+https://github.com/smarnach/pyexiftool.git#egg=pyexiftool``

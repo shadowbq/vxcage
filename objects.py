@@ -247,14 +247,22 @@ class File:
         metadata = None
         uselessexifkey = [u'SourceFile', u'File:FilePermissions', u'File:Directory', u'ExifTool:ExifToolVersion',
                           u'File:FileModifyDate', u'File:FileName', u'File:FileSize']
+        '''
         with exiftool.ExifTool() as et:
             tfile = tempfile.NamedTemporaryFile(mode='w+b')
-            tfile.write(self.file_data)
-            tfile.flush()
-            metadata = et.get_metadata(tfile.name)
-            tfile.close()            
+            try:
+                tfile.write(self.file_data)
+                tfile.flush()
+
+                logging.debug('temp file name:', tfile.name)
+
+                metadata = et.get_metadata(tfile.name)
+            finally:     
+                tfile.close()            
+            
             for key in uselessexifkey:
                 del metadata[key]
+        '''
         return json.dumps(metadata)
 
     def get_peheaders(self):

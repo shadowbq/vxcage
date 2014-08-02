@@ -1,36 +1,16 @@
 #!/usr/bin/env python
-# Copyright (c) 2012, Claudio "nex" Guarnieri
-#
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
-#
-# 1. Redistributions of source code must retain the above copyright notice,
-# this list of conditions and the following disclaimer.
-# 2. Redistributions in binary form must reproduce the above copyright notice,
-# this list of conditions and the following disclaimer in the documentation
-# and/or other materials provided with the distribution.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 import argparse
 import json
+import requests
 
-from bottle import route, request, response, run
-from bottle import HTTPError
+try:
+    from bottle import route, request, response, run, server_names, ServerAdapter, hook, HTTPError
+except ImportError:
+    sys.exit("ERROR: Bottle.py library is missing")
 
 from objects import File
 from database import Database
@@ -38,20 +18,35 @@ from utils import jsonize, store_sample, get_sample_path
 
 db = Database()
 
+@route("/about", method="GET")
+def about():
+    return jsonize({"version": "1.3.0", "source": "https://github.com/shadowbq/vxcage"})
+
 @route("/test", method="GET")
 def test():
     return jsonize({"message" : "test"})
 
 @route("/malware/add", method="POST")
 def add_malware():
-    tags = request.forms.get("tags")
-    data = request.files.file
-    info = File(file_path=store_sample(data.file.read()))
+    try:
+        tags = request.forms.get("tags")
+        data = request.files.file
+        info = File(file_path=store_sample(data.file.read()))
 
-    db.add(obj=info, file_name=data.filename, tags=tags)
+        db.add(obj=info, file_name=data.filename, tags=tags)
 
-    return jsonize({"message" : "added"})
+        response.content_type = 'application/json'
+        return jsonize({"message" : "added"})
 
+    except MemoryError:
+        logging.exception("Out of memory")
+        sys.exit("Out of memory error")
+    except RuntimeError:
+        response.content_type = 'application/json'
+        response.status = 504
+        return jsonize({"error" : "timeout"})
+
+'''
 @route("/malware/get/<sha256>", method="GET")
 def get_malware(sha256):
     path = get_sample_path(sha256)
@@ -63,35 +58,175 @@ def get_malware(sha256):
     data = open(path, "rb").read()
 
     return data
+'''
+
+@route("/malware/get/<filehash>", method="GET")
+def get_malware(filehash):
+    db = Database()
+    md5 = None
+    sha256 = filehash
+    data = None
+    
+    if len(filehash) == 32:
+        logging.debug("Most likely we got a MD5 checksum, do a lookup...")
+        md5 = filehash
+        try:
+            result = db.find_md5(filehash)
+            if result and "sha256" in result:
+                sha256 = result["sha256"]
+                md5 = filehash
+        except Exception:
+            logging.exception("Sample not found")
+            pass
+        logging.debug("Got %s " % sha256)
+    if len(filehash) == 40:
+        logging.debug("Most likely we got a SHA1 checksum, do a lookup...")
+        sha1 = filehash
+        try:
+            result = db.find_sha1(filehash)
+            if result and "sha256" in result:
+                sha256 = result["sha256"]
+                md5 = result["md5"]
+        except Exception:
+            logging.exception("Sample not found")
+            pass
+        logging.debug("Got %s" % sha256)
+    if len(filehash) == 64:
+        logging.debug("Most likely we got a SHA256 checksum, do a lookup...")
+        try:
+            sha256 = filehash
+            if not md5:
+                result = db.find_sha256(filehash)
+                if result and "md5" in result:
+                    md5 = result["md5"]
+        except Exception:
+            logging.exception("Sample not found")
+            pass
+
+    if len(filehash) == 128:
+        logging.debug("Most likely we got a SHA512 checksum, do a lookup...")
+        sha512 = filehash
+        try:
+            result = db.find_sha512(filehash)
+            if result and "sha256" in result:
+                sha256 = result["sha256"]
+                md5 = result["md5"]
+        except Exception:
+            logging.exception("Sample not found")
+            pass
+        logging.debug("Got %s" % sha256)
+
+
+    try:
+        data = db.get_file(sha256=sha256) # Try getting sample from local repository
+        if data:
+            logging.debug("Found malware in local archive")
+        else:
+            logging.debug("Malware not found in local archive")
+    except Exception:
+        logging.exception("File not found in local repository")
+
+    if not data:
+        response.content_type = 'application/json'
+        response.status = 404
+        return jsonize({"error" : "file_not_found"})
+    else:
+        path = get_sample_path(sha256)
+        response.content_length = os.path.getsize(path)
+        response.content_type = "application/octet-stream; charset=UTF-8"
+        #response.content_type = 'application/octet-stream'
+        return data
+
+# Server Search online for Malware
+@route("/malware/scavenge/<filehash>", method="GET")
+def get_scavenge(filehash):
+    db = Database()
+    md5 = None
+    sha256 = filehash
+    data = None
+    
+    try:
+        ############
+        # Malshare #
+        ############
+        logging.info("Downloading sample from MalShare")
+        malshare_api_key = Config().malshare.api_key
+        payload = { 'action'  : 'getfile',
+                    'api_key' : malshare_api_key,
+                    'md5'     : filehash }
+        url = "http://api.malshare.com/sampleshare.php"
+        user_agent = {'User-agent': 'wget_malshare daily 1.0'}
+        r = requests.get(url, params=payload, headers=user_agent)
+        data = r.content
+        if data != "Sample not found" and data != "Empty hash specified":
+            tags = 'malshare'
+            info = File(file_data=data)
+            if db.add(file_obj=info, file_name="malshare_" + filehash, file_data=data, tags=tags):
+                logging.info("Added sample from malshare")
+            else:
+                logging.info("Failed to add sample from malshare")
+        else:
+            data = None
+    except Exception:
+        logging.exception("Something went wrong while download from Malshare")
+        pass
+
+    if not data:
+        # Not in local repository. Let's see if anyone else has it.
+        try:
+            ##############
+            # Malware.lu #
+            ##############
+            logging.info("Downloading sample from malware.lu")
+            malwarelu_api_key = Config().malwarelu.api_key
+            url = "https://www.malware.lu/api/download"
+            payload = { 'hash'   : filehash,
+                        'apikey' : malwarelu_api_key }
+            r = requests.post(url, data=payload)
+            if r.headers['content-type'] == 'application/octet-stream':
+                data = r.content
+                tags = 'malwarelu'
+                info = File(file_data=data)
+                if db.add(file_obj=info, file_name="malwarelu_" + filehash, file_data=data, tags=tags):
+                    logging.info("Added sample from malware.lu")
+                else:
+                    logging.info("Failed to add sample from malware.lu")
+            else:
+                data = None
+        except Exception:
+            logging.exception("Something went wrong while download from malware.lu")
+            pass
+
+    if not data:
+        response.content_type = 'application/json'
+        response.status = 404
+        return jsonize({"error" : "file_not_found"})
+
+    else:
+        response.content_type = 'application/octet-stream'
+        return data
+
+
+
+
+@route("/malware/find/<filehash>", method="GET")
+def find_malware_lazy():
+    #Generic GET
+    filehash = request.forms.get("filehash")
+
+    if filehash:
+        result = _find_lazy_hash(filehash)
+        if result:
+            response.content_type = 'application/json'
+            return jsonize(_details(result))
+        else:
+            response.content_type = 'application/json'
+            response.status = 404
+            return jsonize({"error" : "file_not_found"})
+
 
 @route("/malware/find", method="POST")
 def find_malware():
-    def details(row):
-        tags = []
-        for tag in row.tag:
-            tags.append(tag.tag)
-
-        entry = {
-            "id" : row.id,
-            "file_name" : row.file_name,
-            "file_type" : row.file_type,
-            "file_size" : row.file_size,
-            "md5" : row.md5,
-            "sha1" : row.sha1,
-            "sha256" : row.sha256,
-            "sha512" : row.sha512,
-            "crc32" : row.crc32,
-            "ssdeep": row.ssdeep,
-            "imphash": row.imphash,
-            "exif": row.exif,
-            "virustotal": row.virustotal,
-            "peid": row.peid,
-            "pdfid": row.pdfid,
-            "created_at": row.created_at.__str__(),
-            "tags" : tags
-        }
-
-        return entry
 
     md5 = request.forms.get("md5")
     sha256 = request.forms.get("sha256")
@@ -103,15 +238,21 @@ def find_malware():
     if md5:
         row = db.find_md5(md5)
         if row:
-            return jsonize(details(row))
+            response.content_type = 'application/json'
+            return jsonize(_details(row))
         else:
-            raise HTTPError(404, "File not found")
+            response.content_type = 'application/json'
+            response.status = 404
+            return jsonize({"error" : "file_not_found"})
     elif sha256:
         row = db.find_sha256(sha256)
         if row:
-            return jsonize(details(row))
+            response.content_type = 'application/json'
+            return jsonize(_details(row))
         else:
-            raise HTTPError(404, "File not found")
+            response.content_type = 'application/json'
+            response.status = 404
+            return jsonize({"error" : "file_not_found"})
     else:
         if ssdeep:
             rows = db.find_ssdeep(ssdeep)
@@ -122,16 +263,21 @@ def find_malware():
         elif date:
             rows = db.find_date(date)
         else:
-            return HTTPError(400, "Invalid search term")
+            response.content_type = 'application/json'
+            response.status = 404
+            return jsonize({"error" : "invalid_search_term"})
 
         if not rows:
-            return HTTPError(404, "File not found")
+            response.content_type = 'application/json'
+            response.status = 404
+            return jsonize({"error" : "file_not_found"})
 
         results = []
         for row in rows:
-            entry = details(row)
+            entry = _details(row)
             results.append(entry)
 
+        response.content_type = 'application/json'
         return jsonize(results)
 
 @route("/tags/list", method="GET")
@@ -142,7 +288,10 @@ def list_tags():
     for row in rows:
         results.append(row.tag)
 
+    response.content_type = 'application/json'
+    response.status = 404
     return jsonize(results)
+
 
 @route("/vt/error", method="GET")
 def vt_error():
@@ -151,7 +300,8 @@ def vt_error():
     results = []
     for row in rows:
         results.append(row.sha256)
-
+    
+    response.content_type = 'application/json'
     return jsonize(results)
 
 @route("/vt/missing", method="GET")
@@ -162,13 +312,78 @@ def vt_missing():
     for row in rows:
         results.append(row.sha256)
 
+    response.content_type = 'application/json'
     return jsonize(results)
 
 @route("/malware/total", method="GET")
 def total_samples():
     results = db.total_samples()
 
+    response.content_type = 'application/json'
     return jsonize(results)
+
+
+def _find_lazy_hash(filehash):
+    if len(filehash) == 32:
+        logging.debug("Most likely we got a MD5 checksum, do a lookup...")
+        try:
+            result = db.find_md5(filehash)
+        except Exception:
+            logging.exception("MD5 Sample not found")
+            pass
+
+    if len(filehash) == 40:
+        logging.debug("Most likely we got a SHA1 checksum, do a lookup...")
+        try:
+            result = db.find_sha1(filehash)
+        except Exception:
+            logging.exception("SHA1 Sample not found")
+            pass
+
+    if len(filehash) == 64:
+        logging.debug("Most likely we got a SHA256 checksum, do a lookup...")
+        try:
+            result = db.find_sha256(filehash)
+        except Exception:
+            logging.exception("SHA256 Sample not found")
+            pass
+
+    if len(filehash) == 128:
+        logging.debug("Most likely we got a SHA512 checksum, do a lookup...")
+        try:
+            result = db.find_sha512(filehash)
+        except Exception:
+            logging.exception("SHA512 Sample not found")
+            pass
+            
+    return result
+
+def _details(row):
+    tags = []
+    for tag in row.tag:
+        tags.append(tag.tag)
+
+    entry = {
+        "id" : row.id,
+        "file_name" : row.file_name,
+        "file_type" : row.file_type,
+        "file_size" : row.file_size,
+        "md5" : row.md5,
+        "sha1" : row.sha1,
+        "sha256" : row.sha256,
+        "sha512" : row.sha512,
+        "crc32" : row.crc32,
+        "ssdeep": row.ssdeep,
+        "imphash": row.imphash,
+        "exif": row.exif,
+        "virustotal": row.virustotal,
+        "peid": row.peid,
+        "pdfid": row.pdfid,
+        "created_at": row.created_at.__str__(),
+        "tags" : tags
+    }
+
+    return entry
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
