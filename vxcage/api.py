@@ -16,6 +16,26 @@ from lib.objects import File
 from lib.database import Database
 from lib.utils import jsonize, store_sample, get_sample_path
 
+# VxCage External Libraries 
+
+try:
+    from ext import pefile
+    from ext import peutils
+except MemoryError:
+    logging.exception("Out of memory")
+    sys.exit("Out of memory error")
+except ImportError as e:
+    print e
+    sys.exit("ERROR: 'PEFile & PEUtils' VxCage EXT library failed to load")
+
+
+try:
+    from ext.pdfid import PDFiD2JSON, PDFiD
+except MemoryError:
+    logging.exception("Out of memory")
+    sys.exit("Out of memory error")
+except ImportError:
+    sys.exit("ERROR: 'PDFiD' VxCage EXT library failed to load")
 
 #-----------------------------------------------------------------------------
 # Code
@@ -222,7 +242,7 @@ def find_malware():
     md5 = request.forms.get("md5")
     sha256 = request.forms.get("sha256")
     ssdeep = request.forms.get("ssdeep")
-    ssdeep = request.forms.get("imphash")
+    imphash = request.forms.get("imphash")
     tag = request.forms.get("tag")
     date = request.forms.get("date")
 

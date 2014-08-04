@@ -15,6 +15,8 @@ import time
 import urllib
 import urllib2
 
+import importlib
+
 # PIP imports
 
 try:
@@ -50,24 +52,6 @@ except MemoryError:
 except ImportError:
     sys.exit("ERROR: Virustotal library is missing")
 
-# VxCage External Libraries 
-
-try:
-    import ..ext.pefile
-    import ..ext.peutils
-except MemoryError:
-    logging.exception("Out of memory")
-    sys.exit("Out of memory error")
-except ImportError:
-    sys.exit("ERROR: 'PEFile & PEUtils' VxCage EXT library failed to load")
-
-try:
-    from ..ext.pdfid import PDFiD2JSON, PDFiD
-except MemoryError:
-    logging.exception("Out of memory")
-    sys.exit("Out of memory error")
-except ImportError:
-    sys.exit("ERROR: 'PDFiD' VxCage EXT library failed to load")
 
 #-----------------------------------------------------------------------------
 # Code
@@ -402,7 +386,11 @@ class File:
                 return json.loads('{"virustotal" : -1}')
 
 class Config:
-    def __init__(self, cfg="api.conf"):
+    def __init__(self, cfg=['../etc/api.conf', '../tests/api.conf.test', os.path.expanduser('~/.vxcage.cfg')]):
+        
+        for fname in cfg:
+            logging.debug(os.path.abspath(fname) + " Found: " + str(os.path.isfile(fname)))
+
         config = ConfigParser.ConfigParser()
         config.read(cfg)
 

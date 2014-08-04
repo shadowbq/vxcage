@@ -69,7 +69,7 @@ def help():
     print("  " + bold("total") + "        Total number of samples")
     print("  " + bold("version") + "      Version of remote vxcage server")
     print("  " )
-    print("  " + bold("help") + "         Show this help")
+    print("  " + bold("help | ?") + "         Show this help")
     print("  " + bold("exit | quit") + "  Exit cli application")
     
 
@@ -329,12 +329,12 @@ class VxCage(object):
 
             command = raw.strip().split(" ")
 
-            if command[0] == "help":
+            if (command[0] == "help" or command[0] == "?"):
                 help()
+            elif (command[0] == "version" or command[0] == "about"):
+                self.server_version()    
             elif command[0] == "total":
                 self.malware_total()
-            elif command[0] == "version":
-                self.server_version()    
             elif command[0] == "tags":
                 self.tags_list()
             elif command[0] == "find":
@@ -342,6 +342,7 @@ class VxCage(object):
                     self.find_malware(command[1], command[2])
                 else:
                     print("ERROR: Missing arguments (e.g. \"find <key> <value>\")")
+                    print("     Available keys: md5, sha256, ssdeep, imphash, tag or date")
             elif command[0] == "get":
                 if len(command) == 3:
                     self.get_malware(command[1], command[2])
@@ -354,7 +355,7 @@ class VxCage(object):
                     self.add_malware(command[1], command[2])
                 else:
                     print("ERROR: Missing arguments (e.g. \"add <path> <comma separated tags>\")")
-            elif command[0] == "quit" or command[0] == "exit":
+            elif (command[0] == "quit" or command[0] == "exit"):
                 break
 
 if __name__ == "__main__":

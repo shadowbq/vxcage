@@ -15,6 +15,6 @@ def clean(docs=False, bytecode=True, extra=''):
 
 @task
 def webserver(docs=False):
-    run("python api.py")
+    run("cd vxcage && python api.py")
     if docs:
         run("sphinx-build docs docs/_build")
