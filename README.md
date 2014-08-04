@@ -3,14 +3,12 @@ VxCage
 
 VxCage is a WSGI Python application for managing a malware samples repository with a REST API interface.
 
-Dependencies
+Installation
 ------------
 
-In order to install VxCage you need to have Python (2.7) installed. Following are the required libraries.
+In order to install VxCage you need to have Python (2.7), pip, and git installed. 
 
-* [bottle.py](http://www.bottlepy.org/) -- `pip install bottle`
-* [sqlalchemy](http://www.sqlalchemy.org) -- `pip install sqlalchemy`
-
+Following are the required libraries:
 
 If you want to enable the fuzzy hash, you need to install.
 
@@ -18,29 +16,7 @@ If you want to enable the fuzzy hash, you need to install.
 
 On Ubuntu/Debian systems ``sudo apt-get install ssdeep libfuzzy-dev``
 
-* [pydeep](http://ssdeep.sourceforge.net/) -- ``pip install pydeep``
-
-In Development
-----------
-
-pyEXIFTool for inspecting Image files
-
-* [pyEXIFTool](https://github.com/smarnach/pyexiftool) -- ``sudo pip install git+https://github.com/smarnach/pyexiftool.git#egg=pyexiftool``
-
-
-Developement dependencies
----------
-
-* Build Cleaning tool -- ``pip install invoke``
-* Test Drive Design -- ``pip install ivoire``
-* Run Tests -- ``pip install tox``
-
-Installation
-------------
-
-### PostgreSQL
-
-First thing first, extract VxCage to your selected location and open `api.conf` and configure the path to the local folder you want to use as a storage.
+### Database - PostgreSQL
 
 This fork of VxCage *requires* PostgreSQL in order to take advantage of native json data types.
 
@@ -48,16 +24,28 @@ To install PostgreSQL requirements:
 
 On Ubuntu/Debian systems ``apt-get install postgresql postgresql-contrib postgresql-server-dev-all libpq-dev``.
 
-
-* [psycopg2](http://initd.org/psycopg/) PostgreSQL SQLAlchemy Bindings -- ``pip install psycopg2``
-
-You also need to configure the connection string for your database in `api.conf`. For example:
+You also need to configure the connection string for your database in `etc/api.conf`. For example:
 
 PostgreSQL:
 
     postgresql://user:pass@host/database
 
-Refer to [SQLAlchemy](http://docs.sqlalchemy.org/en/latest/core/engines.html)'s documentation for additional details.
+Refer to [SQLAlchemy](http://docs.sqlalchemy.org/en/latest/core/engines.html)'s documentation for additional connection string details.
+
+
+Python Dependencies
+------------
+ 
+If they are installed, you can install the required Python packages via pip.
+ 
+ * ``pip install -r requirements.txt``
+ 
+Development dependencies
+---------
+ 
+You can install the required Python packages via pip.
+ 
+ * ``pip install -r dev-requirements.txt``
 
 ### Apache Installation
 
@@ -73,7 +61,7 @@ Enable the mod:
 
     # a2enmod wsgi
 
-#### Secure Apache Installation
+#### Secure Apache Configuration
 
 If you want to enable SSL, you need to generate a certificate with OpenSSL or buy one from a certified authority.
 You can also use the `make-ssl-cert` utility as following:
@@ -121,7 +109,7 @@ You should be ready to go. Make sure to reload Apache afterwards:
 
     # service apache2 reload
 
-#### Unauthenticated Apache 2.4.x Installation
+#### Unauthenticated Apache 2.4.x Configuration
 
     <VirtualHost *:80>
         ServerName localhost
@@ -149,13 +137,12 @@ You should be ready to go. Make sure to reload Apache afterwards:
 
     # service apache2 reload
 
-
-Test Installation (Pure Python)
+Standalone webserver (Pure Python)
 ------------
 
 For testing purposes, you can also run it with the Bottle.py server just doing:
 
-    $ python api.py
+    $ invoke webserver
 
 Usage
 -----
@@ -205,12 +192,15 @@ In case you added a basic authentication, you will need to add `--basic -u "user
 Console
 -------
 
-You can also easily interact with your VxCage server using the provided console interface.
+You can also easily interact with your VxCage server using the provided console interface from either a remote or localmachine.
+
+You will need python 2.7, and pip installed.
+
 In order to run it, you'll need the following dependencies:
 
-* [requests](http://www.python-requests.org) -- `pip install requests`
-* [prettytable](http://code.google.com/p/prettytable/) -- `pip install prettytable`
-* [progressbar](http://code.google.com/p/python-progressbar/) -- `pip install progressbar`
+* ``pip install -r client-requirements.pip``
+
+The client can be found on the server in ``bin\vxcage.py`` 
 
 This is the help message:
 

@@ -5,7 +5,11 @@ import logging
 import json
 import string
 
-from objects import File, Config
+from .objects import File, Config
+
+#-----------------------------------------------------------------------------
+# Code
+#-----------------------------------------------------------------------------
 
 logging.basicConfig(
     format="%(levelname) -10s %(asctime)s %(message)s",

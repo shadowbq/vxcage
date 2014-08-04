@@ -1,4 +1,24 @@
-*.pyc
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# C extensions
+*.so
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.cache
+coverage.xml
 *.test
+
+# Potential Malware Repo
 malware/
-samples/
+
+# Sphinx documentation
+docs/build/
+docs/textract/
+
+# vagrant
+.vagrant

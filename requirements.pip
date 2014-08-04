@@ -1,0 +1,17 @@
+#--------------------------------------
+# VxCage Python Requirements
+# - Server Packages 
+#--------------------------------------
+bottle
+sqlalchemy
+#......................................
+# MetaData Packages 
+#......................................
+pydeep
+python-magic
+git+https://github.com/smarnach/pyexiftool.git#egg=pyexiftool
+git+https://github.com/bytecowboy/virustotal.git#egg=virustotal
+#......................................
+# Database Packages
+#......................................
+psycopg2

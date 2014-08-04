@@ -12,9 +12,14 @@ try:
 except ImportError:
     sys.exit("ERROR: Bottle.py library is missing")
 
-from objects import File
-from database import Database
-from utils import jsonize, store_sample, get_sample_path
+from lib.objects import File
+from lib.database import Database
+from lib.utils import jsonize, store_sample, get_sample_path
+
+
+#-----------------------------------------------------------------------------
+# Code
+#-----------------------------------------------------------------------------
 
 db = Database()
 
@@ -45,20 +50,6 @@ def add_malware():
         response.content_type = 'application/json'
         response.status = 504
         return jsonize({"error" : "timeout"})
-
-'''
-@route("/malware/get/<sha256>", method="GET")
-def get_malware(sha256):
-    path = get_sample_path(sha256)
-    if not path:
-        raise HTTPError(404, "File not found")
-
-    response.content_length = os.path.getsize(path)
-    response.content_type = "application/octet-stream; charset=UTF-8"
-    data = open(path, "rb").read()
-
-    return data
-'''
 
 @route("/malware/get/<filehash>", method="GET")
 def get_malware(filehash):
@@ -392,3 +383,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     run(host=args.host, port=args.port)
+

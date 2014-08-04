@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 
+from datetime import datetime
+
+# PIP imports
+
 from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime, Enum, Text, ForeignKey, Table, Index, and_, or_, func
 from sqlalchemy.orm import relationship, backref, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
@@ -7,8 +11,13 @@ from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from sqlalchemy.pool import NullPool
 from sqlalchemy.dialects import postgresql
 
-from objects import File, Config
-from datetime import datetime
+# VxCage Libraries
+
+from .objects import File, Config
+
+#-----------------------------------------------------------------------------
+# Database Code
+#-----------------------------------------------------------------------------
 
 Base = declarative_base()
 

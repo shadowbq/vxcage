@@ -1,29 +1,3 @@
-'''
-Copyright (c) 2012, Claudio "nex" Guarnieri
-Copyright (c) 2013, Michael Boman <michael@michaelboman.org>
-
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-
-1. Redistributions of source code must retain the above copyright notice,
-this list of conditions and the following disclaimer.
-2. Redistributions in binary form must reproduce the above copyright notice,
-this list of conditions and the following disclaimer in the documentation
-and/or other materials provided with the distribution.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-'''
 # -*- coding: utf-8 -*-
 
 import ConfigParser
@@ -41,22 +15,24 @@ import time
 import urllib
 import urllib2
 
-try:
-    import pefile
-    import peutils
-except MemoryError:
-    logging.exception("Out of memory")
-    sys.exit("Out of memory error")
-except ImportError:
-    sys.exit("ERROR: PEFile / PEUtils library is missing")
+# PIP imports
 
 try:
-    import virustotal
+    import pydeep
+    HAVE_SSDEEP = True
 except MemoryError:
     logging.exception("Out of memory")
     sys.exit("Out of memory error")
 except ImportError:
-    sys.exit("ERROR: virustotal library is missing")
+    HAVE_SSDEEP = False # Should change this to 'bomb on missing' in configuration file
+
+try:
+    import magic
+except MemoryError:
+    logging.exception("Out of memory")
+    sys.exit("Out of memory error")
+except ImportError:
+    sys.exit("ERROR: python-magic library is missing")
 
 try:
     import exiftool
@@ -67,29 +43,35 @@ except ImportError:
     sys.exit("ERROR: EXIFTool library is missing")
 
 try:
-    from pdfid import PDFiD2JSON, PDFiD
+    import virustotal
 except MemoryError:
     logging.exception("Out of memory")
     sys.exit("Out of memory error")
 except ImportError:
-    sys.exit("ERROR: PDFiD library is missing")
+    sys.exit("ERROR: Virustotal library is missing")
+
+# VxCage External Libraries 
 
 try:
-    import magic
+    import ..ext.pefile
+    import ..ext.peutils
 except MemoryError:
     logging.exception("Out of memory")
     sys.exit("Out of memory error")
 except ImportError:
-    pass
+    sys.exit("ERROR: 'PEFile & PEUtils' VxCage EXT library failed to load")
 
 try:
-    import pydeep
-    HAVE_SSDEEP = True
+    from ..ext.pdfid import PDFiD2JSON, PDFiD
 except MemoryError:
     logging.exception("Out of memory")
     sys.exit("Out of memory error")
 except ImportError:
-    HAVE_SSDEEP = False
+    sys.exit("ERROR: 'PDFiD' VxCage EXT library failed to load")
+
+#-----------------------------------------------------------------------------
+# Code
+#-----------------------------------------------------------------------------
 
 logging.basicConfig(
     format="%(levelname) -10s %(asctime)s %(message)s",
@@ -370,7 +352,8 @@ class File:
         else:
             pe = self.pe
         try:
-            signatures = peutils.SignatureDatabase(self.pathname + '/userdb.txt')
+            logging.debug("searching for peid file: " + self.pathname + '/../ext/data/userdb.txt')
+            signatures = peutils.SignatureDatabase(self.pathname + '/../ext/data/userdb.txt')
             matches = signatures.match_all(pe, ep_only=True)
             logging.debug("Matched PEiD signature(s): {0}".format(' '.join(matches[0])))
             return matches[0][0]
