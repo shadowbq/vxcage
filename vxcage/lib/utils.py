@@ -38,6 +38,7 @@ def store_sample(data):
 
 def get_sample_path(sha256):
     path = os.path.join(Config().api.repository, sha256[0], sha256[1], sha256[2], sha256[3], sha256)
+    logging.debug("Searching path: " + path)
     if not os.path.exists(path):
         return None
     return path

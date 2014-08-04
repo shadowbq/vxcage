@@ -6,6 +6,7 @@ import sys
 import argparse
 import json
 import requests
+import logging
 
 try:
     from bottle import route, request, response, run, server_names, ServerAdapter, hook, HTTPError
@@ -83,33 +84,45 @@ def get_malware(filehash):
         md5 = filehash
         try:
             result = db.find_md5(filehash)
-            if result and "sha256" in result:
-                sha256 = result["sha256"]
+            #logging.debug(jsonize(_details(result)))
+            #logging.debug("result =>" + str(result.sha256))
+            #logging.debug("result class name => " + type(result).__name__)
+            if result :
+                sha256 = result.sha256
                 md5 = filehash
+                logging.debug("DB entry found.")
+            else:
+                logging.debug("DB entry NOT found.")
         except Exception:
             logging.exception("Sample not found")
             pass
-        logging.debug("Got %s " % sha256)
+        logging.debug("Using %s " % sha256)
     if len(filehash) == 40:
         logging.debug("Most likely we got a SHA1 checksum, do a lookup...")
         sha1 = filehash
         try:
             result = db.find_sha1(filehash)
-            if result and "sha256" in result:
-                sha256 = result["sha256"]
-                md5 = result["md5"]
+            if result :
+                sha256 = result.sha256
+                md5 = result.md5
+                logging.debug("DB entry found.")
+            else:
+                logging.debug("DB entry NOT found.")    
         except Exception:
             logging.exception("Sample not found")
             pass
-        logging.debug("Got %s" % sha256)
+        logging.debug("Using %s" % sha256)
     if len(filehash) == 64:
         logging.debug("Most likely we got a SHA256 checksum, do a lookup...")
         try:
             sha256 = filehash
-            if not md5:
-                result = db.find_sha256(filehash)
-                if result and "md5" in result:
-                    md5 = result["md5"]
+            result = db.find_sha256(filehash)
+            if result :
+                sha256 = result.sha256
+                md5 = result.md5
+                logging.debug("DB entry found.")
+            else:
+                logging.debug("DB entry NOT found.")    
         except Exception:
             logging.exception("Sample not found")
             pass
@@ -119,33 +132,28 @@ def get_malware(filehash):
         sha512 = filehash
         try:
             result = db.find_sha512(filehash)
-            if result and "sha256" in result:
-                sha256 = result["sha256"]
-                md5 = result["md5"]
+            if result :
+                sha256 = result.sha256
+                md5 = result.md5
+                logging.debug("DB entry found.")
+            else:
+                logging.debug("DB entry NOT found.")    
         except Exception:
             logging.exception("Sample not found")
             pass
-        logging.debug("Got %s" % sha256)
+        logging.debug("Using %s" % sha256)
 
 
-    try:
-        data = db.get_file(sha256=sha256) # Try getting sample from local repository
-        if data:
-            logging.debug("Found malware in local archive")
-        else:
-            logging.debug("Malware not found in local archive")
-    except Exception:
-        logging.exception("File not found in local repository")
-
-    if not data:
+    path = get_sample_path(sha256)
+    
+    if not path:
         response.content_type = 'application/json'
         response.status = 404
         return jsonize({"error" : "file_not_found"})
     else:
-        path = get_sample_path(sha256)
         response.content_length = os.path.getsize(path)
         response.content_type = "application/octet-stream; charset=UTF-8"
-        #response.content_type = 'application/octet-stream'
+        data = open(path, "rb").read()
         return data
 
 # Server Search online for Malware
@@ -402,5 +410,6 @@ if __name__ == "__main__":
     parser.add_argument("-p", "--port", help="Port to bind the API server on", default=8080, action="store", required=False)
     args = parser.parse_args()
 
+    logging.exception("Launching bottle route paths in Main")
     run(host=args.host, port=args.port)
 
