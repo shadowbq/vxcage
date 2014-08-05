@@ -131,8 +131,9 @@ class Database:
 
     __metaclass__ = Singleton
 
-    def __init__(self):
-        self.engine = create_engine(Config().api.database, poolclass=NullPool)
+    def __init__(self, cfg=None):
+        self.cfg = cfg
+        self.engine = create_engine(Config(cfg=self.cfg).api.database, poolclass=NullPool)
         self.engine.echo = False
         self.engine.pool_timeout = 60
 
@@ -249,3 +250,33 @@ class Database:
         session = self.Session()
         rows = session.query(func.count(Malware.md5)).scalar()
         return rows
+
+    def truncate(self):
+        try:
+            #logging.debug("starting")
+            #session = self.Session()
+            con = self.engine.connect()
+            trans = con.begin()
+            for table in reversed(Base.metadata.sorted_tables): 
+                print table.delete()
+                con.execute(table.delete())
+            trans.commit()    
+            #session.commit()
+        except SQLAlchemyError as e:
+            session.rollback()
+            print "SQLAlchemyError failure" + str(e)
+            return False    
+            #print("meta => " + type(meta).__name__)
+            #for name, table in meta.tables.items(): 
+            #    print table.delete() 
+                #con.execute(table.delete()) 
+            #for table in reversed(meta.sorted_tables):
+            #    print table.delete() 
+                #con.execute(table.delete())   
+            
+            #session.commit()
+            #   pass
+        return True
+        
+
+
