@@ -253,29 +253,16 @@ class Database:
 
     def truncate(self):
         try:
-            #logging.debug("starting")
-            #session = self.Session()
             con = self.engine.connect()
             trans = con.begin()
             for table in reversed(Base.metadata.sorted_tables): 
                 print table.delete()
                 con.execute(table.delete())
             trans.commit()    
-            #session.commit()
         except SQLAlchemyError as e:
             session.rollback()
             print "SQLAlchemyError failure" + str(e)
             return False    
-            #print("meta => " + type(meta).__name__)
-            #for name, table in meta.tables.items(): 
-            #    print table.delete() 
-                #con.execute(table.delete()) 
-            #for table in reversed(meta.sorted_tables):
-            #    print table.delete() 
-                #con.execute(table.delete())   
-            
-            #session.commit()
-            #   pass
         return True
         
 

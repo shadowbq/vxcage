@@ -84,9 +84,6 @@ def get_malware(filehash):
         md5 = filehash
         try:
             result = db.find_md5(filehash)
-            #logging.debug(jsonize(_details(result)))
-            #logging.debug("result =>" + str(result.sha256))
-            #logging.debug("result class name => " + type(result).__name__)
             if result :
                 sha256 = result.sha256
                 md5 = filehash
