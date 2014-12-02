@@ -144,7 +144,7 @@ For testing purposes, you can also run it with the Bottle.py server just doing:
 
     $ invoke webserver
 
-Usage
+API Usage
 -----
 
 You can interact with your repository with the provided REST API.
@@ -189,7 +189,7 @@ Retrieve total (estimated) number of samples:
 In case you added a basic authentication, you will need to add `--basic -u "user:pass"`. In case you added SSL support with a generated certificate, you will need to add `--insecure` and obviously make the requests to https://yourdomain.tld.
 
 
-Console
+Client Console
 -------
 
 You can also easily interact with your VxCage server using the provided console interface from either a remote or localmachine.
@@ -313,6 +313,18 @@ Or upload a new one:
 
     vxcage> add /tmp/malware.exe windows,trojan,something
     File uploaded successfully
+
+Server Side Invocations
+-------
+
+Available tasks:
+
+  clean         Clean up docs, bytecode, and extras
+  clobber       Clean up malware store, database, docs, bytecode, and extras
+  rest_client   Run the cli REST API client application
+  webserver     Run the bottle.py test webapp
+
+
 
 Copying
 -------
