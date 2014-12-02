@@ -317,12 +317,12 @@ Or upload a new one:
 Server Side Invocations
 -------
 
-Available tasks:
+    Available tasks:
 
-  clean         Clean up docs, bytecode, and extras
-  clobber       Clean up malware store, database, docs, bytecode, and extras
-  rest_client   Run the cli REST API client application
-  webserver     Run the bottle.py test webapp
+        clean         Clean up docs, bytecode, and extras
+        clobber       Clean up malware store, database, docs, bytecode, and extras
+        rest_client   Run the cli REST API client application
+        webserver     Run the bottle.py test webapp
 
 
 
