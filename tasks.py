@@ -31,8 +31,8 @@ def clobber(post=[clean], datastore=True, db=True):
 
 @task
 def webserver(docs=False):
-    """ Run the bottle.py test webapp """
-    run("cd vxcage && python api.py")
+    """ Run the bottle.py test webapp on 8080 """
+    run("cd vxcage && python api.py -H 0.0.0.0")
     if docs:
         run("sphinx-build docs docs/_build")
 

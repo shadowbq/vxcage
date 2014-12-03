@@ -42,7 +42,7 @@ except ImportError:
 # Code
 #-----------------------------------------------------------------------------
 
-db = Database()
+db = Database(cfg = ['../etc/api.conf', '../tests/api.conf.test', os.path.expanduser('~/.vxcage.cfg')])
 
 @route("/about", method="GET")
 def about():
@@ -407,6 +407,6 @@ if __name__ == "__main__":
     parser.add_argument("-p", "--port", help="Port to bind the API server on", default=8080, action="store", required=False)
     args = parser.parse_args()
 
-    logging.exception("Launching bottle route paths in Main")
+    logging.debug("Launching bottle route paths in Main")
     run(host=args.host, port=args.port)
 

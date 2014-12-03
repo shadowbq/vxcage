@@ -386,13 +386,21 @@ class File:
                 return json.loads('{"virustotal" : -1}')
 
 class Config:
-    def __init__(self, cfg=['../etc/api.conf', '../tests/api.conf.test', os.path.expanduser('~/.vxcage.cfg')]):
+    def __init__(self, cfg = None):
         
-        for fname in cfg:
-            logging.debug(os.path.abspath(fname) + " Found: " + str(os.path.isfile(fname)))
+        try:
+            logging.debug("Search for configs in: [" + ",".join(cfg) + "]")
+            for fname in cfg:
+                logging.debug(os.path.abspath(fname) + " Found: " + str(os.path.isfile(fname)))
 
-        config = ConfigParser.ConfigParser()
-        config.read(cfg)
+            config = ConfigParser.ConfigParser()
+            
+            config.read(cfg)
+
+        except Exception:
+            logging.exception("Missing Configuration files.")
+            sys.exit("Missing Configuration files.")
+
 
         for section in config.sections():
             setattr(self, section, Dictionary())
@@ -412,6 +420,8 @@ class Config:
                         value = config.get(section, name)
 
                 setattr(getattr(self, section), name, value)
+
+        logging.debug( "Using Database String: " + self.api.database)
 
     def get(self, section):
         try:
