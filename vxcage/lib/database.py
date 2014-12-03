@@ -131,9 +131,8 @@ class Database:
 
     __metaclass__ = Singleton
 
-    def __init__(self, cfg=None):
-        self.cfg = cfg
-        self.engine = create_engine(Config(cfg=self.cfg).api.database, poolclass=NullPool)
+    def __init__(self):
+        self.engine = create_engine(Config().api.database, poolclass=NullPool)
         self.engine.echo = False
         self.engine.pool_timeout = 60
 

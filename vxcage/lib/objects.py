@@ -386,7 +386,7 @@ class File:
                 return json.loads('{"virustotal" : -1}')
 
 class Config:
-    def __init__(self, cfg = None):
+    def __init__(self, cfg = ['../etc/api.conf', '../tests/api.conf.test', os.path.expanduser('~/.vxcage.cfg')]):
         
         try:
             logging.debug("Search for configs in: [" + ",".join(cfg) + "]")
@@ -422,6 +422,7 @@ class Config:
                 setattr(getattr(self, section), name, value)
 
         logging.debug( "Using Database String: " + self.api.database)
+        logging.debug( "Using Malware Storage Dir: " + self.api.repository)
 
     def get(self, section):
         try:

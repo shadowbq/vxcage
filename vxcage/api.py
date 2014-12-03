@@ -42,7 +42,7 @@ except ImportError:
 # Code
 #-----------------------------------------------------------------------------
 
-db = Database(cfg = ['../etc/api.conf', '../tests/api.conf.test', os.path.expanduser('~/.vxcage.cfg')])
+db = Database()
 
 @route("/about", method="GET")
 def about():
@@ -57,6 +57,9 @@ def add_malware():
     try:
         tags = request.forms.get("tags")
         data = request.files.file
+
+        #logging.debug("SHA256 of submission: " + File(file_data=data.read()).get_sha256())
+
         info = File(file_path=store_sample(data.file.read()))
 
         db.add(obj=info, file_name=data.filename, tags=tags)
@@ -222,9 +225,6 @@ def get_scavenge(filehash):
         response.content_type = 'application/octet-stream'
         return data
 
-
-
-
 @route("/malware/find/<filehash>", method="GET")
 def find_malware_lazy():
     #Generic GET
@@ -239,7 +239,6 @@ def find_malware_lazy():
             response.content_type = 'application/json'
             response.status = 404
             return jsonize({"error" : "file_not_found"})
-
 
 @route("/malware/find", method="POST")
 def find_malware():
@@ -307,7 +306,6 @@ def list_tags():
     response.content_type = 'application/json'
     response.status = 404
     return jsonize(results)
-
 
 @route("/vt/error", method="GET")
 def vt_error():
