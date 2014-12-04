@@ -13,9 +13,9 @@ try:
 except ImportError:
     sys.exit("ERROR: Bottle.py library is missing")
 
-from lib.objects import File
+from lib.objects import File, Config
 from lib.database import Database
-from lib.utils import jsonize, store_sample, get_sample_path
+from lib.utils import jsonize, store_sample, store_secure_sample, get_sample_path
 
 # VxCage External Libraries 
 
@@ -56,10 +56,10 @@ def test():
 def add_malware():
     try:
         tags = request.forms.get("tags")
+        
+        #data is a Bottle FileUpload obj
         data = request.files.file
-
-        #logging.debug("SHA256 of submission: " + File(file_data=data.read()).get_sha256())
-
+        
         info = File(file_path=store_sample(data.file.read()))
 
         db.add(obj=info, file_name=data.filename, tags=tags)
@@ -74,6 +74,41 @@ def add_malware():
         response.content_type = 'application/json'
         response.status = 504
         return jsonize({"error" : "timeout"})
+
+#Store malware via a submission in a ZIP file(one file per) with a password
+@route("/malware/secure/add", method="POST")
+def add_secure_malware():
+    try:
+        tags = request.forms.get("tags")
+        password = request.forms.get("password")
+        if password is None:
+            zpwd = Config().api.zip_password
+            if zpwd is None:
+                logging.debug ("No ZIP password")
+            else:
+                logging.debug ("Using default ZIP password: '" + zpwd + "'")
+                password = zpwd
+        else:
+            logging.debug ("Request ZIP password: '" + password + "'")
+
+        #data is a Bottle FileUpload obj
+        data = request.files.file
+        
+        #store_secure_sample(data.file.read(), "infected")
+        info = File(file_path=store_secure_sample(data.file.read(), password))
+        db.add(obj=info, file_name=data.filename, tags=tags)
+
+        response.content_type = 'application/json'
+        return jsonize({"message" : "added"})
+
+    except MemoryError:
+        logging.exception("Out of memory")
+        sys.exit("Out of memory error")
+    except RuntimeError:
+        response.content_type = 'application/json'
+        response.status = 504
+        return jsonize({"error" : "timeout"})
+
 
 @route("/malware/get/<filehash>", method="GET")
 def get_malware(filehash):
