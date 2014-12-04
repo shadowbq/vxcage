@@ -1,4 +1,6 @@
+#---------------------------------
+## Client Binary Packages Required
+#---------------------------------
 requests
-prettytable                                                                                                                                                                                        
+prettytable
 progressbar
-

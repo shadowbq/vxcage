@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import logging
 from datetime import datetime
 
 # PIP imports
@@ -165,9 +165,11 @@ class Database:
                 session.add(malware_entry)
                 session.commit()
             except IntegrityError:
+                logging.exception("Integrity Error on DB Add")
                 session.rollback()
                 malware_entry = session.query(Malware).filter(Malware.md5 == obj.get_md5()).first()
             except SQLAlchemyError:
+                logging.exception("SQLAlchemyError on DB Add")
                 session.rollback()
                 return False
 

@@ -1,4 +1,15 @@
+#---------------------------------
+## Development Packages Required
+#---------------------------------
+
+# Testing
 coverage
-invoke
+
+#+-+- RPSEC like Testing +-+-
 ivoire
+
+#+-+- MultiPlatform Testing +-+-
 tox
+
+# Toolsets
+invoke

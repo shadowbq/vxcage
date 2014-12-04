@@ -19,7 +19,7 @@ def clean(docs=False, bytecode=True, extra=''):
 
 @task
 def clobber(post=[clean], datastore=True, db=True):
-    """ Clean up malware store, database, docs, bytecode, and extras """
+    """ Delete malware store, Truncate database, Delete docs, bytecode, and extras """
     patterns = []
     if datastore:
         patterns.append('./malware')
@@ -31,7 +31,7 @@ def clobber(post=[clean], datastore=True, db=True):
 
 @task
 def webserver(docs=False):
-    """ Run the bottle.py test webapp on 8080 """
+    """ Run the bottle.py test webapp on http://0.0.0.0:8080 """
     run("cd vxcage && python api.py -H 0.0.0.0")
     if docs:
         run("sphinx-build docs docs/_build")
@@ -42,10 +42,15 @@ def rest_client(docs=False):
     run("cd bin && python vxcage.py")
 
 
+@task 
+def truncate():
+    """ Truncate the Database only """
+    print _truncate_db()
+
 def _truncate_db():
     from vxcage.lib.database import Database
 
-    db = Database(cfg=['etc/api.conf', 'tests/api.conf.test', os.path.expanduser('~/.vxcage.cfg')])
+    db = Database()
     
     if db.truncate():
         return "Completed truncation"
