@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import sys
 import logging
 from datetime import datetime
 
@@ -133,6 +134,10 @@ class Database:
 
     def __init__(self):
         self.engine = create_engine(Config().api.database, poolclass=NullPool)
+        if self.engine.url.drivername != "postgresql":
+            logging.exception("SQLAlchemy - postgresql only please. " + self.engine.url.drivername + " detected.")
+            sys.exit("SQLAlchemy - postgresql only please. " + self.engine.url.drivername + " detected.")
+
         self.engine.echo = False
         self.engine.pool_timeout = 60
 
