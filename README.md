@@ -39,7 +39,12 @@ Python Dependencies
 If they are installed, you can install the required Python packages via pip.
  
  * ``pip install -r requirements.txt``
+
+For extended `pefile` functions install upgrade pefile to a version >= 1.2.10-139
+
+ * ``pip install pefile --upgrade --allow-external=pefile --allow-unverified=pefile``
  
+
 Development dependencies
 ---------
  
