@@ -15,6 +15,20 @@ import time
 import urllib
 import urllib2
 
+import pefile
+
+try:
+    from vxcage.ext import peutils
+except MemoryError:
+    logging.exception("Out of memory")
+    sys.exit("Out of memory error")
+except ImportError as e:
+    try:
+      from ext import peutils
+    except ImportError as e:  
+        print e
+        sys.exit("ERROR: 'PEUtils' VxCage EXT library failed to load")
+
 import importlib
 
 # PIP imports
@@ -76,7 +90,8 @@ class File:
         self.file_path = file_path
         self.filenames = []
         self.tags = []
-        
+        #mime_type = self.get_type()
+
         if tags:
             self.tags.extend(tags.split(" "))
 
@@ -87,13 +102,16 @@ class File:
 
         try:
             if "PE" in self.get_type():
+                logging.debug("PE File Submitted")
                 self.pe = pefile.PE(data=self.file_data)
             else:
+                logging.debug("NON-PE File")
                 self.pe = None
         except MemoryError:
             logging.exception("Out of memory")
             sys.exit("Out of memory error")
-        except Exception:
+        except Exception as e:
+            logging.debug("Error Reading PE Data:" + str(e))
             self.pe = None
             
         self.pathname = os.path.abspath(os.path.dirname(sys.argv[0]))
@@ -291,7 +309,14 @@ class File:
             return
         else:
             pe = self.pe
-        return pe.get_imphash()
+        
+        try:
+            imphash = pe.get_imphash()
+        except AttributeError:
+            logging.exeception("No imphash support, upgrade pefile to a version >= 1.2.10-139 (`pip install --upgrade pefile`)")
+            imphash = "-1"
+        
+        return imphash
 
     def get_pefunctions(self):
         metadata = {}
@@ -336,15 +361,16 @@ class File:
         else:
             pe = self.pe
         try:
-            logging.debug("searching for peid file: " + self.pathname + '/../ext/data/userdb.txt')
-            signatures = peutils.SignatureDatabase(self.pathname + '/../ext/data/userdb.txt')
+            logging.debug("searching for peid file: " + self.pathname + '/ext/data/userdb.txt')
+            signatures = peutils.SignatureDatabase(self.pathname + '/ext/data/userdb.txt')
             matches = signatures.match_all(pe, ep_only=True)
             logging.debug("Matched PEiD signature(s): {0}".format(' '.join(matches[0])))
             return matches[0][0]
         except MemoryError:
             logging.exception("Out of memory")
             sys.exit("Out of memory error")
-        except Exception:
+        except Exception as e:
+            logging.debug("Error with PEiD:" + str(e))
             return None
     
     def get_pdfid(self):
@@ -365,7 +391,8 @@ class File:
             logging.exception("Out of memory")
             sys.exit("Out of memory error")
         except Exception:
-                return json.loads('{"pdfid" : -1}')
+            logging.debug("Error with PDFiD:" + str(e))
+            return json.loads('{"pdfid" : -1}')
         
         return metadata
 

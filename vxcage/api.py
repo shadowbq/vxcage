@@ -7,6 +7,7 @@ import argparse
 import json
 import requests
 import logging
+import pefile
 
 try:
     from bottle import route, request, response, run, server_names, ServerAdapter, hook, HTTPError
@@ -20,7 +21,6 @@ from lib.utils import jsonize, store_sample, store_secure_sample, get_sample_pat
 # VxCage External Libraries 
 
 try:
-    from ext import pefile
     from ext import peutils
 except MemoryError:
     logging.exception("Out of memory")
@@ -42,7 +42,6 @@ except ImportError:
 # Code
 #-----------------------------------------------------------------------------
 
-db = Database()
 
 @route("/about", method="GET")
 def about():
@@ -110,86 +109,71 @@ def add_secure_malware():
         return jsonize({"error" : "timeout"})
 
 
+@route("/malware/secure/get/<filehash>", method="GET")
+def get_secure_malware(filehash):
+    logging.debug("@route(/malware/secure/get/<filehash>")
+    
+    if filehash:
+        result = _find_lazy_hash(filehash) #db.find_sha256(filehash)
+        
+        if result :
+                sha256 = result.sha256
+                logging.debug("DB entry found.")
+                path = get_sample_path(sha256)
+        
+                if not path:
+                    logging.exception("DB entry with Path NOT found: " + sha256)
+                    response.content_type = 'application/json'
+                    response.status = 404
+                    return jsonize({"error" : "file_not_found"})
+                else:
+                    logging.debug("Returning Data.")
+                    response.content_length = os.path.getsize(path)
+                    response.content_type = "application/octet-stream; charset=UTF-8"
+                    data = open(path, "rb").read()
+                    return data
+
+        else:
+            logging.debug("DB entry NOT found.")
+            response.content_type = 'application/json'
+            response.status = 404
+            return jsonize({"error" : "file_not_found"})
+    else:
+        return jsonize({"error" : "Missing hash param"})
+
+
+# "GET /malware/get/8d7e9d9bc527dcc05ec40ab9d4f48091d27ba384ff966bf299e4bc20899bcfe1 HTTP/1.1" 200 169966
 @route("/malware/get/<filehash>", method="GET")
 def get_malware(filehash):
-    db = Database()
-    md5 = None
-    sha256 = filehash
-    data = None
+    logging.debug("@route(/malware/get/<filehash>")
     
-    if len(filehash) == 32:
-        logging.debug("Most likely we got a MD5 checksum, do a lookup...")
-        md5 = filehash
-        try:
-            result = db.find_md5(filehash)
-            if result :
+    if filehash:
+        result = _find_lazy_hash(filehash) #db.find_sha256(filehash)
+        
+        if result :
                 sha256 = result.sha256
-                md5 = filehash
                 logging.debug("DB entry found.")
-            else:
-                logging.debug("DB entry NOT found.")
-        except Exception:
-            logging.exception("Sample not found")
-            pass
-        logging.debug("Using %s " % sha256)
-    if len(filehash) == 40:
-        logging.debug("Most likely we got a SHA1 checksum, do a lookup...")
-        sha1 = filehash
-        try:
-            result = db.find_sha1(filehash)
-            if result :
-                sha256 = result.sha256
-                md5 = result.md5
-                logging.debug("DB entry found.")
-            else:
-                logging.debug("DB entry NOT found.")    
-        except Exception:
-            logging.exception("Sample not found")
-            pass
-        logging.debug("Using %s" % sha256)
-    if len(filehash) == 64:
-        logging.debug("Most likely we got a SHA256 checksum, do a lookup...")
-        try:
-            sha256 = filehash
-            result = db.find_sha256(filehash)
-            if result :
-                sha256 = result.sha256
-                md5 = result.md5
-                logging.debug("DB entry found.")
-            else:
-                logging.debug("DB entry NOT found.")    
-        except Exception:
-            logging.exception("Sample not found")
-            pass
+                path = get_sample_path(sha256)
+        
+                if not path:
+                    logging.exception("DB entry with Path NOT found: " + sha256)
+                    response.content_type = 'application/json'
+                    response.status = 404
+                    return jsonize({"error" : "file_not_found"})
+                else:
+                    logging.debug("Returning Data.")
+                    response.content_length = os.path.getsize(path)
+                    response.content_type = "application/octet-stream; charset=UTF-8"
+                    data = open(path, "rb").read()
+                    return data
 
-    if len(filehash) == 128:
-        logging.debug("Most likely we got a SHA512 checksum, do a lookup...")
-        sha512 = filehash
-        try:
-            result = db.find_sha512(filehash)
-            if result :
-                sha256 = result.sha256
-                md5 = result.md5
-                logging.debug("DB entry found.")
-            else:
-                logging.debug("DB entry NOT found.")    
-        except Exception:
-            logging.exception("Sample not found")
-            pass
-        logging.debug("Using %s" % sha256)
-
-
-    path = get_sample_path(sha256)
-    
-    if not path:
-        response.content_type = 'application/json'
-        response.status = 404
-        return jsonize({"error" : "file_not_found"})
+        else:
+            logging.debug("DB entry NOT found.")
+            response.content_type = 'application/json'
+            response.status = 404
+            return jsonize({"error" : "file_not_found"})
     else:
-        response.content_length = os.path.getsize(path)
-        response.content_type = "application/octet-stream; charset=UTF-8"
-        data = open(path, "rb").read()
-        return data
+        return jsonize({"error" : "Missing hash param"}) 
 
 # Server Search online for Malware
 @route("/malware/scavenge/<filehash>", method="GET")
@@ -440,6 +424,8 @@ if __name__ == "__main__":
     parser.add_argument("-p", "--port", help="Port to bind the API server on", default=8080, action="store", required=False)
     args = parser.parse_args()
 
+
+    db = Database()
     logging.debug("Launching bottle route paths in Main")
     run(host=args.host, port=args.port)
 

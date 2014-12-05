@@ -1,5 +1,6 @@
 import importlib
 import os
+from vxcage.lib.objects import Config
 from invoke import run, task
 
 @task
@@ -22,7 +23,7 @@ def clobber(post=[clean], datastore=True, db=True):
     """ Delete malware store, Truncate database, Delete docs, bytecode, and extras """
     patterns = []
     if datastore:
-        patterns.append('./malware')
+        patterns.append(Config().api.repository)
     if db:
         print _truncate_db()
     for pattern in patterns:

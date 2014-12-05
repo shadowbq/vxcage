@@ -9,6 +9,7 @@ sqlalchemy
 #......................................
 pydeep
 python-magic
+pefile
 git+https://github.com/smarnach/pyexiftool.git#egg=pyexiftool
 git+https://github.com/bytecowboy/virustotal.git#egg=virustotal
 #......................................
