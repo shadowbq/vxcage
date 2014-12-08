@@ -8,6 +8,8 @@ import json
 import requests
 import logging
 import pefile
+import zipfile
+import tempfile
 
 try:
     from bottle import route, request, response, run, server_names, ServerAdapter, hook, HTTPError
@@ -45,7 +47,7 @@ except ImportError:
 
 @route("/about", method="GET")
 def about():
-    return jsonize({"version": "1.3.0", "source": "https://github.com/shadowbq/vxcage"})
+    return jsonize({"version": "1.4.0", "source": "https://github.com/shadowbq/vxcage", "zip-password": Config().api.zip_password})
 
 @route("/test", method="GET")
 def test():
@@ -108,40 +110,7 @@ def add_secure_malware():
         response.status = 504
         return jsonize({"error" : "timeout"})
 
-
-@route("/malware/secure/get/<filehash>", method="GET")
-def get_secure_malware(filehash):
-    logging.debug("@route(/malware/secure/get/<filehash>")
-    
-    if filehash:
-        result = _find_lazy_hash(filehash) #db.find_sha256(filehash)
-        
-        if result :
-                sha256 = result.sha256
-                logging.debug("DB entry found.")
-                path = get_sample_path(sha256)
-        
-                if not path:
-                    logging.exception("DB entry with Path NOT found: " + sha256)
-                    response.content_type = 'application/json'
-                    response.status = 404
-                    return jsonize({"error" : "file_not_found"})
-                else:
-                    logging.debug("Returning Data.")
-                    response.content_length = os.path.getsize(path)
-                    response.content_type = "application/octet-stream; charset=UTF-8"
-                    data = open(path, "rb").read()
-                    return data
-
-        else:
-            logging.debug("DB entry NOT found.")
-            response.content_type = 'application/json'
-            response.status = 404
-            return jsonize({"error" : "file_not_found"})
-    else:
-        return jsonize({"error" : "Missing hash param"})
-
-
+# Return the Binary data of the file hash requested
 # "GET /malware/get/8d7e9d9bc527dcc05ec40ab9d4f48091d27ba384ff966bf299e4bc20899bcfe1 HTTP/1.1" 200 169966
 @route("/malware/get/<filehash>", method="GET")
 def get_malware(filehash):
@@ -174,6 +143,54 @@ def get_malware(filehash):
             return jsonize({"error" : "file_not_found"})
     else:
         return jsonize({"error" : "Missing hash param"}) 
+
+# Return the Binary data of the file hash requested in a password protected ZIP file.
+#http://10.200.0.53:8080/malware/secure/get/8d7e9d9bc527dcc05ec40ab9d4f48091d27ba384ff966bf299e4bc20899bcfe1
+@route("/malware/secure/get/<filehash>", method="GET")
+def get_secure_malware(filehash):
+    logging.debug("@route(/malware/secure2/get/<filehash>")
+    
+    try:
+        import pyminizip
+    except:
+        "missing pyminizip library"
+    
+    if filehash:
+        zpwd = Config().api.zip_password
+        result = _find_lazy_hash(filehash) #db.find_sha256(filehash)
+        
+        if result :
+            sha256 = result.sha256
+            logging.debug("DB entry found.")
+            path = get_sample_path(sha256)
+    
+            if not path:
+                logging.exception("DB entry with Path NOT found: " + sha256)
+                response.content_type = 'application/json'
+                response.status = 404
+                return jsonize({"error" : "file_not_found"})
+            else:
+                logging.debug("Returning Data.")
+                tf = tempfile.NamedTemporaryFile(delete=False)
+                zipFileName = tf.name
+                tf.close()
+                
+                compression_level = 5
+                pyminizip.compress(path, zipFileName, zpwd, compression_level)
+                
+                response.content_length = os.path.getsize(zipFileName)
+                response.content_type = "application/octet-stream; charset=UTF-8"
+                data = open(zipFileName, "rb").read()
+
+                return data
+
+        else:
+            logging.debug("DB entry NOT found.")
+            response.content_type = 'application/json'
+            response.status = 404
+            return jsonize({"error" : "file_not_found"})
+    else:
+        return jsonize({"error" : "Missing hash param"})
 
 # Server Search online for Malware
 @route("/malware/scavenge/<filehash>", method="GET")
@@ -259,6 +276,7 @@ def find_malware_lazy():
             response.status = 404
             return jsonize({"error" : "file_not_found"})
 
+# Form based POST of explict Hash / Tag search to return hash match results.
 @route("/malware/find", method="POST")
 def find_malware():
 

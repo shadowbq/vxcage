@@ -170,6 +170,8 @@ class Database:
                 session.add(malware_entry)
                 session.commit()
             except IntegrityError:
+                # IntegrityError: (IntegrityError) duplicate key value violates unique constraint "hash_index"
+                # You already uploaded this hash. 
                 logging.exception("Integrity Error on DB Add")
                 session.rollback()
                 malware_entry = session.query(Malware).filter(Malware.md5 == obj.get_md5()).first()
