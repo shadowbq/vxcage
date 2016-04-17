@@ -6,4 +6,5 @@ send "vxpass\r"
 expect "Enter"
 send "vxpass\r" 
 send "\n"
+spawn createdb -Oroot -Eunicode vx
 interact
