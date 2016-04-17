@@ -1,6 +1,6 @@
 #!/usr/bin/expect
 set timeout 20
-spawn /usr/bin/createuser --pwprompt -s prroot 
+spawn /usr/bin/createuser --pwprompt -s root 
 expect "Enter password for"
 send "vxpass\r"
 expect "Enter"
