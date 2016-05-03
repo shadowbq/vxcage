@@ -64,11 +64,14 @@ def help():
     print("Available commands:")
     print("  " + bold("tags") + "         Retrieve list of tags")
     print("  " + bold("find") + "         Query a file by md5, sha256, ssdeep, imphash, tag or date")
-    print("  " + bold("get") + "          Retrieve a file by sha256")
+    print("  " + bold("get") + "          Download a file by sha256")
     print("  " + bold("dump") + "         Dump a list of md5, sha256, ssdeep hashes")
     print("  " + bold("add") + "          Upload a file to the server")
+    print("  " + bold("last") + "         Retrieve a list of the last x files uploaded")
     print("  " + bold("total") + "        Total number of samples")
+    print("  " )
     print("  " + bold("version") + "      Version of remote vxcage server")
+    print("  " + bold("license") + "      Print the software license")
     print("  " )
     print("  " + bold("help | ?") + "         Show this help")
     print("  " + bold("exit | quit") + "  Exit cli application")
@@ -208,6 +211,15 @@ class VxCage(object):
 
         print(table)
 
+    def license(self):
+        req = requests.get(self.build_url("/about/license"),
+                           auth=(self.username, self.password),
+                           verify=False)
+
+        if self.check_errors(req.status_code):
+            return
+        print req.text
+
     def find_malware(self, term, value):
         term = term.lower()
         terms = ["md5", "sha256", "ssdeep", "imphash", "tag", "date"]
@@ -235,46 +247,27 @@ class VxCage(object):
             return
         if self.check_errors(req.status_code):
             return
+        self._print_malware_info(res)
 
-        if isinstance(res, dict):
-            for key, value in res.items():
-                if key == "tags":
-                    print("%s: %s" % (bold(key), ",".join(value)))
-                elif key == "virustotal":
-                    vt = res["virustotal"]
-                    try:
-                        print('\033[1m' + "virustotal" + '\033[0m' + ": " + str(vt["positives"]) + "/" + str(vt["total"]) + " matches")
-                    except:
-                        print('\033[1m' + "virustotal" + '\033[0m' + ": -/- matches")
+    def last_x(self, x):
+        req = requests.get(self.build_url("/malware/last/"+x),
+                           auth=(self.username, self.password),
+                           verify=False)
+        try:
+            res = req.json()
+        except:
+            try:
+                res = req.json
+            except Exception as e:
+                print("ERROR: Unable to parse results: {0}".format(e))
+                return
 
-                elif key == "exif":
-                    exif = res["exif"]
-                    #print('\033[1m' + "timestamp" + '\033[0m' + ": " + exif["EXE:TimeStamp"])
-                    #print('\033[1m' + "character set" + '\033[0m' + ": " + exif["EXE:CharacterSet"])
-                else:
-                    print("%s: %s" % (bold(key), value))
-        else:
-            table = PrettyTable(["md5",
-                                 "sha256",
-                                 "file_name",
-                                 "file_type",
-                                 "file_size",
-                                 "virustotal",
-                                 "tags"])
-            table.align = "l"
-            table.padding_width = 1
-
-            for entry in res:
-                table.add_row([entry["md5"],
-                               entry["sha256"],
-                               entry["file_name"],
-                               entry["file_type"],
-                               entry["file_size"],
-                               entry["virustotal"],
-                               ", ".join(entry["tags"])])
-
-            print(table)
-            print("Total: %d" % len(res))
+        if req.status_code == 404:
+            print("No data found matching your search")
+            return
+        if self.check_errors(req.status_code):
+            return
+        self._print_malware_info(res)
 
     def get_malware(self, sha256, path):
         if not os.path.exists(path):
@@ -341,6 +334,56 @@ class VxCage(object):
         if not self.check_errors(req.status_code):
             print("File uploaded successfully")
 
+    def _is_number(self, s):
+        try:
+            float(s)
+            return True
+        except ValueError:
+            return False
+
+    def _print_malware_info(self, res):
+        if isinstance(res, dict):
+            for key, value in res.items():
+                if key == "tags":
+                    print("%s: %s" % (bold(key), ",".join(value)))
+                elif key == "virustotal":
+                    vt = res["virustotal"]
+                    try:
+                        print('\033[1m' + "virustotal" + '\033[0m' + ": " + str(vt["positives"]) + "/" + str(vt["total"]) + " matches")
+                    except:
+                        print('\033[1m' + "virustotal" + '\033[0m' + ": -/- matches")
+
+                elif key == "exif":
+                    exif = res["exif"]
+                    #print('\033[1m' + "timestamp" + '\033[0m' + ": " + exif["EXE:TimeStamp"])
+                    #print('\033[1m' + "character set" + '\033[0m' + ": " + exif["EXE:CharacterSet"])
+                else:
+                    print("%s: %s" % (bold(key), value))
+        else:
+            table = PrettyTable(["md5",
+                                 "sha256",
+                                 "file_name",
+                                 "file_type",
+                                 "file_size",
+                                 "virustotal",
+                                 "created_at",
+                                 "tags"])
+            table.align = "l"
+            table.padding_width = 1
+
+            for entry in res:
+                table.add_row([entry["md5"],
+                               entry["sha256"],
+                               entry["file_name"],
+                               entry["file_type"],
+                               entry["file_size"],
+                               entry["virustotal"]["virustotal"],
+                               entry["created_at"],
+                               ", ".join(entry["tags"])])
+
+            print(table)
+            print("Total: %d" % len(res))
+
     def run(self):
         self.authenticate()
 
@@ -360,10 +403,17 @@ class VxCage(object):
                 help()
             elif (command[0] == "version" or command[0] == "about"):
                 self.server_version()
+            elif (command[0] == "license"):
+                self.license()
             elif command[0] == "total":
                 self.malware_total()
             elif command[0] == "tags":
                 self.tags_list()
+            elif command[0] == "last":
+                if len(command) == 2 and self._is_number(command[1]):
+                    self.last_x(command[1])
+                else:
+                    print("ERROR: Missing arguments (e.g. \"last <x>\")")
             elif command[0] == "dump":
                 if len(command) == 2 and command[1] in ['md5', 'sha256', 'ssdeep']:
                     self.dump_list(command[1])

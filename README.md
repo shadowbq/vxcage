@@ -247,14 +247,18 @@ Now you can start typing commands, you can start with:
     Available commands:
       tags         Retrieve list of tags
       find         Query a file by md5, sha256, ssdeep, imphash, tag or date
-      get          Retrieve a file by sha256
-      dump         Dump a list of md5, sha256, ssdeep, or combined hashes
+      get          Download a file by sha256
+      dump         Dump a list of md5, sha256, ssdeep hashes
       add          Upload a file to the server
+      last         Retrieve a list of the last x files uploaded
       total        Total number of samples
-      version      Version of remote vxcage server
 
-      help         Show this help
+      version      Version of remote vxcage server
+      license      Print the software license
+
+      help | ?         Show this help
       exit | quit  Exit cli application
+
 
 You can interrogate the server:
 
@@ -312,6 +316,19 @@ You can search for all samples matching a specific tag:
     | ccf43cdc957d09ea2c60c6f57e4600f0 | b998233b85af152596f5087e64c2cadb1466e4f6da62f416ac3126f87c364276 | carberp3.exe | PE32 executable (GUI) Intel 80386, for MS Windows | 186880    |
     +----------------------------------+------------------------------------------------------------------+--------------+---------------------------------------------------+-----------+
     Total: 3
+
+You can view the last 'x' files uploaded:
+
+    vxcage> last 3
+    +----------------------------------+------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------------+-----------+------------+----------------------------+----------------------------+
+    | md5                              | sha256                                                           | file_name          | file_type                                                                                     | file_size | virustotal | created_at                 | tags                       |
+    +----------------------------------+------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------------+-----------+------------+----------------------------+----------------------------+
+    | 0014f80eb7ae874afd50a175441de885 | 6f3546af73d284a40cbfdd2576a6d8fc3c9b5ffad4413f2312230f4c112face2 | setup.exe          | PE32 executable (GUI) Intel 80386, for MS Windows, Nullsoft Installer self-extracting archive | 430304    | -1         | 2016-05-03 05:12:33.382380 | minotaur, bulk_file_import |
+    | 940f45f39e83b9e033dc0c1021fa9b95 | 33b4479b234abf14bcff057416ee1c1794adf25188b358435be216fd66bbf6dd | 2inf_startlink.exe | PE32 executable (GUI) Intel 80386, for MS Windows                                             | 209488    | -1         | 2016-05-03 05:12:33.382380 | bulk_file_import           |
+    | b7d1da8e1b0f64a1d11c20292c39a0c3 | 722cf7a7c33d707da3ed07db60637526439ba910c397b0c91e574d1d30ecf815 | ck.exe             | PE32 executable (GUI) Intel 80386, for MS Windows                                             | 163840    | -1         | 2016-05-03 05:12:33.382380 | bulk_file_import           |
+    +----------------------------------+------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------------+-----------+------------+----------------------------+----------------------------+
+    Total: 3
+
 
 You can view details on a specific sample:
 

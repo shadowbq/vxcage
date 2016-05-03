@@ -244,6 +244,11 @@ class Database:
         rows = session.query(Tag).all()
         return rows
 
+    def last_x(self, x):
+        session = self.Session()
+        rows = session.query(Malware).order_by(Malware.created_at).limit(x).all()
+        return rows
+
     def dump_md5(self):
         session = self.Session()
         rows = session.query(Malware).with_entities(Malware.md5).all()
