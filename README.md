@@ -158,6 +158,10 @@ Submit a sample:
 
     $ curl -F file=@sample.exe -F tags="tag1 tag2" http://yourdomain.tld/malware/add
 
+Submit a bunch of samples to a local instance:
+
+    $ find ./ -type f -print0 | xargs -0 -I {} curl -F file=@{} -F tags="bulk_file_import" http://localhost:8080/malware/add
+
 Retrieve a sample:
 
     $ curl http://yourdomain.tld/malware/get/<sha256> > sample.exe
