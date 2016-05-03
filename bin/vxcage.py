@@ -69,6 +69,7 @@ def help():
     print("  " + bold("add") + "          Upload a file to the server")
     print("  " + bold("last") + "         Retrieve a list of the last x files uploaded")
     print("  " + bold("total") + "        Total number of samples")
+    print("  " + bold("stats") + "        File type stats")
     print("  " )
     print("  " + bold("version") + "      Version of remote vxcage server")
     print("  " + bold("license") + "      Print the software license")
@@ -186,6 +187,24 @@ class VxCage(object):
 
         print("Total: %s" % res)
 
+    def malware_stats_total(self):
+        req = requests.get(self.build_url("/malware/total/stats"),
+                           auth=(self.username, self.password),
+                           verify=False)
+        try:
+            res = req.json()
+        except:
+            try:
+                res = req.json
+            except Exception as e:
+                print("ERROR: Unable to parse results: {0}".format(e))
+                return
+
+        if self.check_errors(req.status_code):
+            return
+
+        self._print_list(res, ["File_type", "Count"])
+
     def server_version(self):
         req = requests.get(self.build_url("/about"),
                            auth=(self.username, self.password),
@@ -202,14 +221,7 @@ class VxCage(object):
         if self.check_errors(req.status_code):
             return
 
-        table = PrettyTable(["Key","Value"])
-        table.align = "l"
-        table.padding_width = 1
-
-        for k,v in res.items():
-                table.add_row([k, v])
-
-        print(table)
+        self._print_kv(res)
 
     def license(self):
         req = requests.get(self.build_url("/about/license"),
@@ -341,6 +353,26 @@ class VxCage(object):
         except ValueError:
             return False
 
+    def _print_kv(self, res):
+        table = PrettyTable(["Key","Value"])
+        table.align = "l"
+        table.padding_width = 1
+
+        for k,v in res.items():
+                table.add_row([k, v])
+
+        print(table)
+
+    def _print_list(self, res, title = ["Key", "Value"]):
+        table = PrettyTable(title)
+        table.align = "l"
+        table.padding_width = 1
+
+        for v in res:
+                table.add_row([v[0],v[1]])
+
+        print(table)
+
     def _print_malware_info(self, res):
         if isinstance(res, dict):
             for key, value in res.items():
@@ -407,6 +439,8 @@ class VxCage(object):
                 self.license()
             elif command[0] == "total":
                 self.malware_total()
+            elif command[0] == "stats":
+                self.malware_stats_total()
             elif command[0] == "tags":
                 self.tags_list()
             elif command[0] == "last":

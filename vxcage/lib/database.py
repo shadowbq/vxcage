@@ -284,6 +284,11 @@ class Database:
         rows = session.query(func.count(Malware.md5)).scalar()
         return rows
 
+    def total_stats_samples(self):
+        session = self.Session()
+        rows = session.query(Malware.file_type, func.count(Malware.file_type)).group_by(Malware.file_type).all()
+        return rows
+
     def truncate(self):
         try:
             con = self.engine.connect()

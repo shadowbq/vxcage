@@ -445,6 +445,13 @@ def total_samples():
     response.content_type = 'application/json'
     return jsonize(results)
 
+@route("/malware/total/stats", method="GET")
+def total_stats_samples():
+    results = db.total_stats_samples()
+
+    response.content_type = 'application/json'
+    return jsonize(results)
+
 
 def _find_lazy_hash(filehash):
     if len(filehash) == 32:
