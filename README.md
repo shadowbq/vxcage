@@ -6,7 +6,7 @@ VxCage is a WSGI Python application for managing a malware samples repository wi
 Installation
 ------------
 
-In order to install VxCage you need to have Python (2.7), pip, and git installed. 
+In order to install VxCage you need to have Python (2.7), pip, and git installed.
 
 Following are the required libraries:
 
@@ -35,26 +35,26 @@ Refer to [SQLAlchemy](http://docs.sqlalchemy.org/en/latest/core/engines.html)'s 
 
 Python Dependencies
 ------------
- 
+
 If they are installed, you can install the required Python packages via pip.
- 
+
  * ``pip install -r requirements.txt``
 
 For extended `pefile` functions install upgrade pefile to a version >= 1.2.10-139
 
  * ``pip install pefile --upgrade --allow-external=pefile --allow-unverified=pefile``
- 
+
 
 Development dependencies
 ---------
- 
+
 You can install the required Python packages via pip.
- 
+
  * ``pip install -r dev-requirements.txt``
 
 ### Apache Installation
 
-If you plan to run VxCage with Apache, you'll need to have mod_wsgi installed. 
+If you plan to run VxCage with Apache, you'll need to have mod_wsgi installed.
 
 On Ubuntu/Debian systems ``apt-get install libapache2-mod-wsgi``.
 
@@ -118,10 +118,10 @@ You should be ready to go. Make sure to reload Apache afterwards:
 
     <VirtualHost *:80>
         ServerName localhost
-    
+
         WSGIDaemonProcess localhost user=www-data group=www-data processes=1 threads=5
         WSGIScriptAlias / /opt/vxcage/app.wsgi
-    
+
         <Directory /opt/vxcage>
             WSGIProcessGroup localhost
             WSGIApplicationGroup %{GLOBAL}
@@ -129,8 +129,8 @@ You should be ready to go. Make sure to reload Apache afterwards:
                 Require all granted
             </Files>
         </Directory>
-    
-    
+
+
         ErrorLog /opt/vxcage/error.log
         LogLevel debug
         CustomLog /opt/vxcage/access.log combined
@@ -209,7 +209,7 @@ In order to run it, you'll need the following dependencies:
 
 * ``pip install -r client-requirements.pip``
 
-The client can be found on the server in ``bin\vxcage.py`` 
+The client can be found on the server in ``bin\vxcage.py``
 
 This is the help message:
 
@@ -230,16 +230,16 @@ For example, you can launch it simply with:
 
 You will be prompted with:
 
-      `o   O o   O .oOo  .oOoO' .oOoO .oOo. 
-       O   o  OoO  O     O   o  o   O OooO' 
+      `o   O o   O .oOo  .oOoO' .oOoO .oOo.
+       O   o  OoO  O     O   o  o   O OooO'
        o  O   o o  o     o   O  O   o O     
-       `o'   O   O `OoO' `OoO'o `OoOo `OoO' 
+       `o'   O   O `OoO' `OoO'o `OoOo `OoO'
                                     O       
                                  OoO'  by nex
 
     Username: nex
-    Password: 
-    vxcage> 
+    Password:
+    vxcage>
 
 Now you can start typing commands, you can start with:
 
@@ -248,10 +248,11 @@ Now you can start typing commands, you can start with:
       tags         Retrieve list of tags
       find         Query a file by md5, sha256, ssdeep, imphash, tag or date
       get          Retrieve a file by sha256
+      dump         Dump a list of md5, sha256, ssdeep, or combined hashes
       add          Upload a file to the server
       total        Total number of samples
       version      Version of remote vxcage server
-      
+
       help         Show this help
       exit | quit  Exit cli application
 
@@ -262,7 +263,7 @@ You can interrogate the server:
     | Key     | Value                              |
     +---------+------------------------------------+
     | source  | https://github.com/shadowbq/vxcage |
-    | version | 1.3.0                              |
+    | version | 1.5.0                              |
     +---------+------------------------------------+
 
 
@@ -279,6 +280,26 @@ You can retrieve the list of available tags:
     | zeus                   |
     +------------------------+
     Total: 5
+
+You can dump the hashes from the storage:
+
+    vxcage> dump sha256
+    +------------------------------------------------------------------+
+    | sha256                                                           |
+    +------------------------------------------------------------------+
+    | 722cf7a7c33d707da3ed07db60637526439ba910c397b0c91e574d1d30ecf815 |
+    | 6f3546af73d284a40cbfdd2576a6d8fc3c9b5ffad4413f2312230f4c112face2 |
+    | 33b4479b234abf14bcff057416ee1c1794adf25188b358435be216fd66bbf6dd |
+    | 3a44e084acd963635cc31566956dbbb06325e97d31f1ffed3796e57cb2edc7d0 |
+    | 63b2a22178d1e73dcf8622e0070aaf7213c0a3a799d6cc88d40c170ca63cd5f6 |
+    | 11f2f82ee59562be560e1803fd508579fd597143b854c01f9f8ef0a95a322799 |
+    | 3103541e8bb641927ac4617c3fc3e3ea00f7c2a8f555979b21c2d21b8bc22a8f |
+    | 5d2eb41f8fc3ca2aa75987e3f36b42d94a3a3e96c03b3526c25a77c4f01044f4 |
+    | 1b05ea7b15603452eacab35f8fde9bc99f3288a5d9e490861d4d21c8a28299b0 |
+    | 1fd9e96945a6b6e8f0a0f354f72f8718c81a2df2ad0db01193348e6c6a9c1536 |
+    +------------------------------------------------------------------+
+    Total: 10
+
 
 You can search for all samples matching a specific tag:
 

@@ -93,7 +93,7 @@ class Malware(Base):
         self.file_size = file_size
         self.file_type = file_type
         self.ssdeep = ssdeep
-        self.imphash = imphash 
+        self.imphash = imphash
         self.virustotal= virustotal
         self.exif = exif
         self.peheaders = peheaders
@@ -171,7 +171,7 @@ class Database:
                 session.commit()
             except IntegrityError:
                 # IntegrityError: (IntegrityError) duplicate key value violates unique constraint "hash_index"
-                # You already uploaded this hash. 
+                # You already uploaded this hash.
                 logging.exception("Integrity Error on DB Add")
                 session.rollback()
                 malware_entry = session.query(Malware).filter(Malware.md5 == obj.get_md5()).first()
@@ -243,7 +243,27 @@ class Database:
         session = self.Session()
         rows = session.query(Tag).all()
         return rows
-    
+
+    def dump_md5(self):
+        session = self.Session()
+        rows = session.query(Malware).with_entities(Malware.md5).all()
+        return rows
+
+    def dump_sha256(self):
+        session = self.Session()
+        rows = session.query(Malware).with_entities(Malware.sha256).all()
+        return rows
+
+    def dump_ssdeep(self):
+        session = self.Session()
+        rows = session.query(Malware).with_entities(Malware.ssdeep).all()
+        return rows
+
+    def dump_hashes(self):
+        session = self.Session()
+        rows = session.query(Malware).with_entities(Malware.md5, Malware.sha256, Malware.ssdeep).all()
+        return rows
+
     def vt_error(self):
         session = self.Session()
         rows = session.query(Malware).filter(Malware.virustotal['virustotal'].cast(Integer) == -1).all()
@@ -253,7 +273,7 @@ class Database:
         session = self.Session()
         rows = session.query(Malware).filter(Malware.virustotal['virustotal'].cast(Integer) == 0).all()
         return rows
-    
+
     def total_samples(self):
         session = self.Session()
         rows = session.query(func.count(Malware.md5)).scalar()
@@ -263,15 +283,12 @@ class Database:
         try:
             con = self.engine.connect()
             trans = con.begin()
-            for table in reversed(Base.metadata.sorted_tables): 
+            for table in reversed(Base.metadata.sorted_tables):
                 print table.delete()
                 con.execute(table.delete())
-            trans.commit()    
+            trans.commit()
         except SQLAlchemyError as e:
             session.rollback()
             print "SQLAlchemyError failure" + str(e)
-            return False    
+            return False
         return True
-        
-
-

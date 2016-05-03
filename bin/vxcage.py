@@ -9,24 +9,24 @@ import readline
 import json
 
 
-import rlcompleter 
-import atexit 
+import rlcompleter
+import atexit
 import glob
 
-# tab completion 
+# tab completion
 def complete(text, state):
     return (glob.glob(text+'*')+[None])[state]
 readline.set_completer_delims(' \t\n;')
 readline.parse_and_bind("tab: complete")
-readline.set_completer(complete) 
+readline.set_completer(complete)
 
-# history file 
-histfile = os.path.join(os.environ['HOME'], '.vxcage_history') 
-try: 
-    readline.read_history_file(histfile) 
-except IOError: 
-    pass 
-atexit.register(readline.write_history_file, histfile) 
+# history file
+histfile = os.path.join(os.environ['HOME'], '.vxcage_history')
+try:
+    readline.read_history_file(histfile)
+except IOError:
+    pass
+atexit.register(readline.write_history_file, histfile)
 del histfile, readline, rlcompleter
 
 
@@ -65,13 +65,14 @@ def help():
     print("  " + bold("tags") + "         Retrieve list of tags")
     print("  " + bold("find") + "         Query a file by md5, sha256, ssdeep, imphash, tag or date")
     print("  " + bold("get") + "          Retrieve a file by sha256")
+    print("  " + bold("dump") + "         Dump a list of md5, sha256, ssdeep hashes")
     print("  " + bold("add") + "          Upload a file to the server")
     print("  " + bold("total") + "        Total number of samples")
     print("  " + bold("version") + "      Version of remote vxcage server")
     print("  " )
     print("  " + bold("help | ?") + "         Show this help")
     print("  " + bold("exit | quit") + "  Exit cli application")
-    
+
 
 class VxCage(object):
     def __init__(self, host, port, xmock, ssl=False, auth=False):
@@ -92,12 +93,12 @@ class VxCage(object):
         if self.ssl:
             url = "https://"
             if self.port is None:
-                self.port = 443    
+                self.port = 443
         else:
             if self.port is None:
                 self.port = 8080
             url = "http://"
-        
+
         url += "%s:%s%s%s" % (self.host, self.port, self.xmock, route)
 
         return url
@@ -134,6 +135,32 @@ class VxCage(object):
 
         for tag in res:
             table.add_row([tag])
+
+        print(table)
+        print("Total: %s" % len(res))
+
+    def dump_list(self, hType):
+        req = requests.get(self.build_url("/malware/dump/"+hType),
+                           auth=(self.username, self.password),
+                           verify=False)
+        try:
+            res = req.json()
+        except:
+            try:
+                res = req.json
+            except Exception as e:
+                print("ERROR: Unable to parse results: {0}".format(e))
+                return
+
+        if self.check_errors(req.status_code):
+            return
+
+        table = PrettyTable([hType])
+        table.align = "l"
+        table.padding_width = 1
+
+        for hType in res:
+            table.add_row(hType)
 
         print(table)
         print("Total: %s" % len(res))
@@ -332,13 +359,19 @@ class VxCage(object):
             if (command[0] == "help" or command[0] == "?"):
                 help()
             elif (command[0] == "version" or command[0] == "about"):
-                self.server_version()    
+                self.server_version()
             elif command[0] == "total":
                 self.malware_total()
             elif command[0] == "tags":
                 self.tags_list()
+            elif command[0] == "dump":
+                if len(command) == 2 and command[1] in ['md5', 'sha256', 'ssdeep']:
+                    self.dump_list(command[1])
+                else:
+                    print("ERROR: Missing arguments (e.g. \"dump <type>\")")
+                    print("     Available types: md5, sha256, ssdeep")
             elif command[0] == "find":
-                if len(command) == 3:
+                if len(command) == 3 and command[1] in ['md5', 'sha256', 'ssdeep', 'imphash', 'tag', 'date']:
                     self.find_malware(command[1], command[2])
                 else:
                     print("ERROR: Missing arguments (e.g. \"find <key> <value>\")")

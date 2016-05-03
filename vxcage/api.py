@@ -20,7 +20,7 @@ from lib.objects import File, Config
 from lib.database import Database
 from lib.utils import jsonize, store_sample, store_secure_sample, get_sample_path
 
-# VxCage External Libraries 
+# VxCage External Libraries
 
 try:
     from ext import peutils
@@ -47,7 +47,7 @@ except ImportError:
 
 @route("/about", method="GET")
 def about():
-    return jsonize({"version": "1.4.0", "source": "https://github.com/shadowbq/vxcage", "zip-password": Config().api.zip_password})
+    return jsonize({"version": "1.5.0", "source": "https://github.com/shadowbq/vxcage", "zip-password": Config().api.zip_password})
 
 @route("/test", method="GET")
 def test():
@@ -57,10 +57,10 @@ def test():
 def add_malware():
     try:
         tags = request.forms.get("tags")
-        
+
         #data is a Bottle FileUpload obj
         data = request.files.file
-        
+
         info = File(file_path=store_sample(data.file.read()))
 
         db.add(obj=info, file_name=data.filename, tags=tags)
@@ -94,7 +94,7 @@ def add_secure_malware():
 
         #data is a Bottle FileUpload obj
         data = request.files.file
-        
+
         #store_secure_sample(data.file.read(), "infected")
         info = File(file_path=store_secure_sample(data.file.read(), password))
         db.add(obj=info, file_name=data.filename, tags=tags)
@@ -115,15 +115,15 @@ def add_secure_malware():
 @route("/malware/get/<filehash>", method="GET")
 def get_malware(filehash):
     logging.debug("@route(/malware/get/<filehash>")
-    
+
     if filehash:
         result = _find_lazy_hash(filehash) #db.find_sha256(filehash)
-        
+
         if result :
                 sha256 = result.sha256
                 logging.debug("DB entry found.")
                 path = get_sample_path(sha256)
-        
+
                 if not path:
                     logging.exception("DB entry with Path NOT found: " + sha256)
                     response.content_type = 'application/json'
@@ -142,28 +142,28 @@ def get_malware(filehash):
             response.status = 404
             return jsonize({"error" : "file_not_found"})
     else:
-        return jsonize({"error" : "Missing hash param"}) 
+        return jsonize({"error" : "Missing hash param"})
 
 # Return the Binary data of the file hash requested in a password protected ZIP file.
 #http://10.200.0.53:8080/malware/secure/get/8d7e9d9bc527dcc05ec40ab9d4f48091d27ba384ff966bf299e4bc20899bcfe1
 @route("/malware/secure/get/<filehash>", method="GET")
 def get_secure_malware(filehash):
     logging.debug("@route(/malware/secure2/get/<filehash>")
-    
+
     try:
         import pyminizip
     except:
         "missing pyminizip library"
-    
+
     if filehash:
         zpwd = Config().api.zip_password
         result = _find_lazy_hash(filehash) #db.find_sha256(filehash)
-        
+
         if result :
             sha256 = result.sha256
             logging.debug("DB entry found.")
             path = get_sample_path(sha256)
-    
+
             if not path:
                 logging.exception("DB entry with Path NOT found: " + sha256)
                 response.content_type = 'application/json'
@@ -174,10 +174,10 @@ def get_secure_malware(filehash):
                 tf = tempfile.NamedTemporaryFile(delete=False)
                 zipFileName = tf.name
                 tf.close()
-                
+
                 compression_level = 5
                 pyminizip.compress(path, zipFileName, zpwd, compression_level)
-                
+
                 response.content_length = os.path.getsize(zipFileName)
                 response.content_type = "application/octet-stream; charset=UTF-8"
                 data = open(zipFileName, "rb").read()
@@ -199,7 +199,7 @@ def get_scavenge(filehash):
     md5 = None
     sha256 = filehash
     data = None
-    
+
     try:
         ############
         # Malshare #
@@ -344,6 +344,35 @@ def list_tags():
     response.status = 404
     return jsonize(results)
 
+@route("/malware/dump/md5", method="GET")
+def dump_md5_samples():
+    results = db.dump_md5()
+
+    response.content_type = 'application/json'
+    return jsonize(results)
+
+@route("/malware/dump/sha256", method="GET")
+def dump_md5_samples():
+    results = db.dump_sha256()
+
+    response.content_type = 'application/json'
+    return jsonize(results)
+
+@route("/malware/dump/ssdeep", method="GET")
+def dump_md5_samples():
+    results = db.dump_ssdeep()
+
+    response.content_type = 'application/json'
+    return jsonize(results)
+
+@route("/malware/dump/hashes", method="GET")
+def dump_md5_samples():
+    results = db.dump_hashes()
+
+    response.content_type = 'application/json'
+    return jsonize(results)
+
+
 @route("/vt/error", method="GET")
 def vt_error():
     rows = db.vt_error()
@@ -351,7 +380,7 @@ def vt_error():
     results = []
     for row in rows:
         results.append(row.sha256)
-    
+
     response.content_type = 'application/json'
     return jsonize(results)
 
@@ -406,7 +435,7 @@ def _find_lazy_hash(filehash):
         except Exception:
             logging.exception("SHA512 Sample not found")
             pass
-            
+
     return result
 
 def _details(row):
@@ -446,4 +475,3 @@ if __name__ == "__main__":
     db = Database()
     logging.debug("Launching bottle route paths in Main")
     run(host=args.host, port=args.port)
-
